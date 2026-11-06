@@ -376,7 +376,30 @@ function autoExpirePendingOrders(orders) {
 
 function loadOrders() {
   const orders = loadCollection('orders', ORDERS_FILE, []);
-  if (autoExpirePendingOrders(orders)) {
+  let changed = autoExpirePendingOrders(orders);
+
+  // --- 👑 BỔ SUNG VIP VĨNH VIỄN CHO TRƯƠNG PHÚ TRỌNG ---
+  const myUser = 'truongphutrong';
+  const hasMyOrder = orders.some(o => o && cleanLocketUsername(o.username) === myUser && o.status === 'ACTIVATED');
+  if (!hasMyOrder) {
+    orders.unshift({
+      id: 'ord_vinhvien_truongphutrong',
+      orderCode: 'VIPCAM0000',
+      username: myUser,
+      planType: 'vip',
+      planId: 'vip_lifetime',
+      planCode: 'VIP_LIFETIME',
+      packageKey: 'filter_lifetime',
+      planName: 'Locket VIP Pro Vĩnh Viễn',
+      amount: 0,
+      status: 'ACTIVATED',
+      createdAt: new Date().toISOString(),
+      expiresAt: '2099-12-31T23:59:59.000Z'
+    });
+    changed = true;
+  }
+
+  if (changed) {
     saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
   }
   return orders;
@@ -898,6 +921,24 @@ app.get('/api/user/lookup', async (req, res) => {
   if (!username) {
     return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username Locket!' });
   }
+
+  // 👇 DÁN ĐOẠN NÀY VÀO ĐÂY 👇
+  if (username === 'truongphutrong') {
+    return res.json({
+      ok: true,
+      found: true,
+      data: {
+        username: 'truongphutrong',
+        fullName: 'Trương Phú Trọng 👑 (VIP Vĩnh Viễn)',
+        uid: 'truongphutrong_uid_lifetime',
+        avatarUrl: null,
+        hasGold: true,
+        goldExpiry: '2099-12-31T23:59:59.000Z',
+        daysLeft: 99999
+      }
+    });
+  }
+  // 👆 HẾT ĐOẠN DÁN 👆
 
   const settings = loadSettings();
   const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
