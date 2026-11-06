@@ -1661,6 +1661,21 @@ app.get('/check-payment', (req, res) => {
     return res.status(400).json({ error: 'Thiếu username' });
   }
 
+  // --- 👑 BYPASS POLLING CHECK CHO TRƯƠNG PHÚ TRỌNG ---
+  if (username === 'truongphutrong') {
+    return res.json({
+      paid: true,
+      plan: 'VIP_LIFETIME',
+      amount: 0,
+      paidAt: new Date().toISOString(),
+      username: 'truongphutrong',
+      locketStatus: 'success',
+      uid: 'truongphutrong_uid_lifetime',
+      mobileconfigUrl: 'https://ctv.nodns.vn/cai-dns',
+      filterShortUrl: null
+    });
+  }
+
   const orders = loadOrders();
   const matched = orders.find(o => cleanLocketUsername(o.username) === username);
 
@@ -1725,8 +1740,14 @@ app.all([
   const cucamBase = settings.apiConfig?.cucamApiBase || 'https://locket.2707226.xyz';
   const kawaiiKey = settings.apiConfig?.kawaiiApiKey || process.env.KAWAII_API_KEY || '';
 
-  let resolvedUid = uid;
+    let resolvedUid = uid;
   let isVipUser = false;
+
+  // --- 👑 ÉP QUYỀN VIP PRO KHI TẢI PROFILE CHO TRƯƠNG PHÚ TRỌNG ---
+  if (username === 'truongphutrong') {
+    isVipUser = true;
+  }
+  
 
   // 1. Kiểm tra xem khách có mua gói VIP (49 Filter Camera AI) trong đơn hàng hoặc CTV không
   if (username) {
@@ -2013,6 +2034,20 @@ app.get('/api/frame/status', async (req, res) => {
   const identifier = cleanLocketUsername(rawId);
   if (!identifier) {
     return res.status(400).json({ status: 'error', message: 'Vui lòng cung cấp username hoặc UID Locket!' });
+  }
+
+  // --- 👑 BỔ SUNG TRẠNG THÁI GOLD CHO TRƯƠNG PHÚ TRỌNG ---
+  if (identifier === 'truongphutrong') {
+    return res.json({
+      status: 'success',
+      data: {
+        username: 'truongphutrong',
+        fullName: 'Trương Phú Trọng 👑',
+        uid: 'truongphutrong_uid_lifetime',
+        hasGold: true,
+        goldExpiry: '2099-12-31T23:59:59.000Z'
+      }
+    });
   }
 
   const settings = loadSettings();
@@ -3415,6 +3450,35 @@ app.get('/api/ctv/dns-lookup', requireCtvActive, async (req, res) => {
   const cleanId = cleanLocketUsername(rawQuery);
   if (!cleanId) {
     return res.status(400).json({ ok: false, message: 'Vui lòng nhập Username hoặc UID Locket của khách!' });
+  }
+
+  // --- 👑 BYPASS TRA CỨU CTV CHO TRƯƠNG PHÚ TRỌNG ---
+  if (cleanId === 'truongphutrong') {
+    const settings = loadSettings();
+    const vipDnsUrl = settings.dnsLinkVip || 'https://ctv.nodns.vn/cai-dns';
+    return res.json({
+      ok: true,
+      data: {
+        username: 'truongphutrong',
+        uid: 'truongphutrong_uid_lifetime',
+        fullName: 'Trương Phú Trọng 👑',
+        avatarUrl: null,
+        hasGold: true,
+        goldExpiry: '2099-12-31T23:59:59.000Z',
+        packageType: 'VIP',
+        packageName: 'Locket VIP Pro Vĩnh Viễn',
+        source: 'BYPASS_ADMIN',
+        dnsLinks: {
+          regularDns: settings.dnsLinkRegular || 'https://locket.2707226.xyz/dns',
+          regularProfile: 'https://locket.2707226.xyz/dns',
+          vipDns: vipDnsUrl,
+          customProfile: '',
+          spotifyDns: ''
+        },
+        frame: null,
+        messageTemplate: `👑 HƯỚNG DẪN CÀI ĐẶT LOCKET VIP (49+ FILTER CAMERA AI):\n👤 Tài khoản: @truongphutrong\n⚡ Gói kích hoạt: Locket VIP Pro Vĩnh Viễn\n✨ Trạng thái: ✅ Đã kích hoạt VIP\n🌐 Link tải cấu hình DNS VIP:\n${vipDnsUrl}`
+      }
+    });
   }
 
   const settings = loadSettings();
