@@ -1,2358 +1,426 @@
-<!DOCTYPE html>
-<html lang="vi">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>Admin Dashboard — Quản Trị Hệ Thống Locket VIP &amp; Gold</title>
-  <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%99%EF%B8%8F%3C/text%3E%3C/svg%3E">
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <style>
-    :root {
-      --bg-dark: #090B10;
-      --bg-sidebar: #0F131C;
-      --bg-card: #141824;
-      --bg-card-hover: #1A2030;
-      --gold: #F59E0B;
-      --vip: #8B5CF6;
-      --emerald: #10B981;
-      --rose: #EF4444;
-      --border: rgba(255, 255, 255, 0.08);
-      --text: #F8FAFC;
-      --text-sub: #94A3B8;
-      --radius: 14px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Nunito', sans-serif;
-      background: var(--bg-dark);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Login Modal */
-    #login-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #090B10;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .login-box {
-      width: 100%;
-      max-width: 400px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 32px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-    }
-
-    .login-box h2 {
-      font-size: 1.5rem;
-      margin-bottom: 8px;
-    }
-
-    .login-input {
-      width: 100%;
-      height: 48px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1.5px solid var(--border);
-      color: #fff;
-      padding: 0 16px;
-      font-size: 1rem;
-      margin: 18px 0;
-      outline: none;
-      text-align: center;
-    }
-
-    .login-input:focus {
-      border-color: var(--gold);
-    }
-
-    .btn-login {
-      width: 100%;
-      height: 48px;
-      border-radius: 12px;
-      border: none;
-      background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
-      color: #000;
-      font-weight: 800;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    /* Layout */
-    .admin-sidebar {
-      width: 260px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
-
-    .admin-main {
-      flex: 1;
-      padding: 28px 36px;
-      overflow-y: auto;
-      height: 100vh;
-    }
-
-    .sidebar-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 32px;
-      padding: 0 8px;
-    }
-
-    .sidebar-brand b {
-      font-size: 1.2rem;
-      background: linear-gradient(90deg, #fff, var(--gold));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .nav-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav-item button {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: none;
-      background: transparent;
-      color: var(--text-sub);
-      font-size: 0.95rem;
-      font-weight: 700;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-
-    .nav-item button:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-    }
-
-    .nav-item button.active {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--gold);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-
-    .btn-logout {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #F87171;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Cards & Stats */
-    .page-title {
-      font-size: 1.6rem;
-      font-weight: 900;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-      margin-bottom: 28px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-    }
-
-    .stat-card .label {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .stat-card .val {
-      font-family: 'Space Grotesk', monospace;
-      font-size: 1.8rem;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .panel-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .panel-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-    }
-
-    /* Form Inputs */
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 800;
-      margin-bottom: 8px;
-      color: #CBD5E1;
-    }
-
-    .form-input,
-    .form-select,
-    .form-textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
-      color: #fff;
-      font-family: inherit;
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    .form-input:focus,
-    .form-textarea:focus {
-      border-color: var(--gold);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    .btn-save {
-      padding: 12px 28px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg, var(--gold) 0%, #D97706 100%);
-      color: #000;
-      font-weight: 900;
-      font-size: 0.95rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-save:hover {
-      filter: brightness(1.1);
-      transform: translateY(-1px);
-    }
-
-    .btn-action-sm {
-      padding: 6px 12px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.82rem;
-      font-weight: 800;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
-    }
-
-    .btn-act-activate {
-      background: linear-gradient(135deg, #10B981, #059669);
-      color: #fff;
-    }
-
-    .btn-act-delete {
-      background: rgba(239, 68, 68, 0.15);
-      color: #F87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .btn-plan-tab {
-      padding: 7px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-sub);
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-
-    .btn-plan-tab:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-    }
-
-    .btn-plan-tab.active {
-      background: rgba(245, 158, 11, 0.2);
-      border-color: rgba(245, 158, 11, 0.5);
-      color: var(--gold);
-    }
-
-    /* Table */
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      padding: 12px 14px;
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-sub);
-      font-weight: 800;
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      vertical-align: middle;
-    }
-
-    tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .badge-status {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .st-activated {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10B981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .st-pending {
-      background: rgba(245, 158, 11, 0.15);
-      color: #FBBF24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-
-    .st-paid {
-      background: rgba(139, 92, 246, 0.15);
-      color: #C084FC;
-      border: 1px solid rgba(139, 92, 246, 0.3);
-    }
-
-    /* Toast */
-    #admin-toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 14px 20px;
-      border-radius: 12px;
-      background: #1E293B;
-      border: 1px solid var(--border);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.9rem;
-      z-index: 10000;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      gap: 10px;
-    }
-
-    body {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    input,
-    textarea,
-    [contenteditable="true"],
-    code,
-    pre {
-      -webkit-user-select: text !important;
-      -moz-user-select: text !important;
-      -ms-user-select: text !important;
-      user-select: text !important;
-    }
-
-    /* Mobile Responsive Header & Drawer */
-    .admin-mobile-header {
-      display: none;
-      width: 100%;
-      height: 60px;
-      background: var(--bg-sidebar);
-      border-bottom: 1px solid var(--border);
-      padding: 0 16px;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-
-    .btn-toggle-sidebar {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border);
-      color: #fff;
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      cursor: pointer;
-    }
-
-    .btn-toggle-sidebar:active {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .mobile-header-title {
-      font-weight: 900;
-      font-size: 1.1rem;
-      background: linear-gradient(90deg, #fff, var(--gold));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-mobile-logout {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #F87171;
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-
-    .sidebar-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: 998;
-    }
-
-    @media (max-width: 900px) {
-      body {
-        flex-direction: column !important;
-      }
-
-      .admin-mobile-header {
-        display: flex;
-      }
-
-      .admin-sidebar {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 280px !important;
-        max-width: 85vw;
-        z-index: 1000 !important;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.85);
-        overflow-y: auto;
-      }
-
-      .admin-sidebar.show-drawer {
-        transform: translateX(0);
-      }
-
-      .sidebar-backdrop.active {
-        display: block;
-      }
-
-      .admin-main {
-        padding: 16px 14px 80px 14px !important;
-        height: auto !important;
-        overflow-y: visible !important;
-      }
-
-      .page-title {
-        font-size: 1.25rem !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 12px !important;
-      }
-
-      .page-title .btn-save,
-      .page-title button {
-        width: 100% !important;
-        justify-content: center !important;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
-      }
-
-      .stat-card {
-        padding: 14px 12px !important;
-      }
-
-      .stat-card .val {
-        font-size: 1.25rem !important;
-      }
-
-      .form-row {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-      }
-
-      .panel-card {
-        padding: 16px 14px !important;
-      }
-
-      .table-responsive {
-        margin: 0 -14px;
-        width: calc(100% + 28px);
-        padding: 0 14px;
-      }
-
-      table {
-        min-width: 650px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
-  </style>
-  <script src="js/security-shield.js"></script>
-</head>
-
-<body>
-
-  <!-- Mobile Top Header Bar -->
-  <header class="admin-mobile-header">
-    <button type="button" class="btn-toggle-sidebar" onclick="toggleAdminSidebar()" aria-label="Menu quản trị">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-    <div class="mobile-header-title">
-      <span>👑 TỔ CAM ADMIN</span>
-    </div>
-    <button type="button" class="btn-mobile-logout" onclick="executeLogout()" title="Đăng Xuất">
-      <i class="fa-solid fa-power-off"></i>
-    </button>
-  </header>
-
-  <!-- Sidebar Backdrop (for Mobile Drawer) -->
-  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleAdminSidebar(false)"></div>
-
-  <!-- Sidebar -->
-  <aside class="admin-sidebar" id="admin-sidebar">
-    <div class="sidebar-brand">
-      <div style="font-size: 24px;">👑</div>
-      <div>
-        <b>TỔ CAM ADMIN</b>
-        <div style="font-size: 11px; color: var(--gold); font-weight: 800; letter-spacing: 0.5px;">LOCKET VIP PRO</div>
-      </div>
-    </div>
-
-    <ul class="nav-list">
-      <li class="nav-item">
-        <button type="button" class="active" onclick="switchAdminTab('tab-overview')">
-          <i class="fa-solid fa-chart-pie"></i> Tổng Quan
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-orders')">
-          <i class="fa-solid fa-cart-shopping"></i> Quản Lý Đơn Hàng
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-plans')">
-          <i class="fa-solid fa-tags"></i> Giá &amp; Gói Cước
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-coupons')">
-          <i class="fa-solid fa-ticket" style="color: #EC4899;"></i> Mã Giảm Giá 🏷️
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-gallery')">
-          <i class="fa-solid fa-images"></i> Ảnh Showroom VIP
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-frames')">
-          <i class="fa-solid fa-wand-magic-sparkles" style="color: #F59E0B;"></i> Quản Lý Khung Widget
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-payment')">
-          <i class="fa-solid fa-credit-card"></i> Ngân Hàng &amp; VietQR
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-api')">
-          <i class="fa-solid fa-key"></i> Cấu Hình API CTV
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-ctv')">
-          <i class="fa-solid fa-users-gear"></i> Quản Lý CTV &amp; Đại Lý
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-customer-ui')">
-          <i class="fa-solid fa-palette"></i> Quản Lý Trang Khách
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-dns-links')">
-          <i class="fa-solid fa-link"></i> Link DNS Thường &amp; VIP
-        </button>
-      </li>
-      <li class="nav-item">
-        <button type="button" onclick="switchAdminTab('tab-settings')">
-          <i class="fa-solid fa-sliders"></i> Cài Đặt Website
-        </button>
-      </li>
-    </ul>
-
-    <div class="sidebar-footer">
-      <a href="khung.html" target="_blank"
-        style="display: flex; align-items: center; gap: 8px; color: #F59E0B; text-decoration: none; font-size: 13px; font-weight: 700; margin-bottom: 10px; padding: 4px;">
-        <i class="fa-solid fa-crop-simple"></i> Đổi Khung Widget
-      </a>
-      <a href="index.html" target="_blank"
-        style="display: flex; align-items: center; gap: 8px; color: var(--text-sub); text-decoration: none; font-size: 13px; font-weight: 700; margin-bottom: 12px; padding: 4px;">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem Trang Khách
-      </a>
-      <button type="button" class="btn-logout" onclick="executeLogout()">
-        <i class="fa-solid fa-power-off"></i> Đăng Xuất
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main Content Area -->
-  <main class="admin-main">
-
-    <!-- ==================== TAB 1: TỔNG QUAN ==================== -->
-    <div id="tab-overview" class="admin-tab-pane">
-      <div class="page-title">
-        <span>Bảng Điều Khiển Tổng Quan</span>
-        <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;" onclick="loadOverviewData()">
-          <i class="fa-solid fa-rotate"></i> Làm Mới
-        </button>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="label">TỔNG DOANH THU</div>
-          <div class="val" id="stat-total-revenue" style="color: var(--gold);">0đ</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">DOANH THU HÔM NAY</div>
-          <div class="val" id="stat-today-revenue" style="color: var(--emerald);">0đ</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">TỔNG ĐƠN HÀNG</div>
-          <div class="val" id="stat-total-orders">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">ĐƠN VIP (49 FILTER)</div>
-          <div class="val" id="stat-vip-orders" style="color: var(--vip);">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">ĐƠN THƯỜNG (GOLD)</div>
-          <div class="val" id="stat-reg-orders">0</div>
-        </div>
-      </div>
-
-      <!-- Live API Kawaii Balance Box -->
-      <div class="panel-card"
-        style="border-color: rgba(139, 92, 246, 0.4); background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(20, 24, 36, 0.95) 100%);">
-        <div class="panel-title" style="color: var(--vip);">
-          <i class="fa-solid fa-crown"></i> Số Dư &amp; Lượt API Kawaii CTV (ctv.nodns.vn)
-        </div>
-        <div class="stats-grid" style="margin-bottom: 0;">
-          <div class="stat-card" style="background: rgba(0,0,0,0.3);">
-            <div class="label">TÀI KHOẢN CTV</div>
-            <div class="val" id="kawaii-user" style="font-size: 1.3rem;">mhhiep</div>
-          </div>
-          <div class="stat-card" style="background: rgba(0,0,0,0.3);">
-            <div class="label">SỐ DƯ VÍ</div>
-            <div class="val" id="kawaii-balance" style="color: var(--gold);">0đ</div>
-          </div>
-          <div class="stat-card" style="background: rgba(0,0,0,0.3);">
-            <div class="label">KHO LƯỢT VIP FILTER</div>
-            <div class="val" id="kawaii-quota-vip" style="color: var(--vip); font-size: 1.25rem;">⭐ Có lượt VIP</div>
-          </div>
-          <div class="stat-card" style="background: rgba(0,0,0,0.3);">
-            <div class="label">TRẠNG THÁI KEY</div>
-            <div class="val" id="kawaii-status" style="color: var(--emerald); font-size: 1.3rem;">ACTIVE ✅</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 2: QUẢN LÝ ĐƠN HÀNG ==================== -->
-    <div id="tab-orders" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Quản Lý Đơn Hàng &amp; Kích Hoạt API</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171;"
-            onclick="cleanupCancelledOrders()" title="Dọn dẹp các đơn đã hủy hoặc hết hạn 3 phút">
-            <i class="fa-solid fa-broom"></i> Dọn Đơn Đã Hủy
-          </button>
-          <button type="button" class="btn-save" id="btn-reload-orders" style="padding: 8px 16px; font-size: 13px;"
-            onclick="loadOrdersList(true)">
-            <i class="fa-solid fa-rotate" id="icon-reload-orders"></i> Tải Lại Danh Sách
-          </button>
-        </div>
-      </div>
-
-      <div class="panel-card">
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>MÃ ĐƠN</th>
-                <th>USERNAME</th>
-                <th>LOẠI</th>
-                <th>GÓI CƯỚC</th>
-                <th>SỐ TIỀN</th>
-                <th>THỜI GIAN</th>
-                <th>TRẠNG THÁI</th>
-                <th>HÀNH ĐỘNG</th>
-              </tr>
-            </thead>
-            <tbody id="orders-table-body">
-              <tr>
-                <td colspan="8" style="text-align: center; color: var(--text-sub); padding: 30px;">
-                  <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách đơn hàng...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 3: GIÁ & GÓI CƯỚC ==================== -->
-    <div id="tab-plans" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <div>
-          <span>Cài Đặt Bảng Giá &amp; Nội Dung Gói Locket</span>
-          <div style="font-size: 13px; color: var(--text-sub); font-weight: normal; margin-top: 4px;">
-            Tuỳ chỉnh giá bán, giá gốc, thời hạn, tính năng bullet points và bật/tắt từng gói bán trên website
-          </div>
-        </div>
-        <button type="button" class="btn-save" onclick="savePlansConfig()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Bảng Giá
-        </button>
-      </div>
-
-      <!-- Gói Locket VIP (49+ Filter) -->
-      <div class="panel-card">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-          <div class="panel-title" style="color: var(--vip); margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
-            <i class="fa-solid fa-crown"></i> Gói Locket VIP Pro (Quay 60s &amp; 49+ Filter AI)
-          </div>
-          <button type="button" class="btn-action-sm btn-act-activate" onclick="addNewPlan('vip')">
-            <i class="fa-solid fa-plus"></i> Thêm Gói VIP Mới
-          </button>
-        </div>
-        <div id="vip-plans-list" style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- Dynamic VIP plans -->
-        </div>
-      </div>
-
-      <!-- Gói Locket Thường (Gold) -->
-      <div class="panel-card">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-          <div class="panel-title" style="color: var(--gold); margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
-            <i class="fa-solid fa-circle-check"></i> Gói Locket Gold Tiêu Chuẩn (Thường)
-          </div>
-          <button type="button" class="btn-action-sm btn-act-activate" onclick="addNewPlan('regular')">
-            <i class="fa-solid fa-plus"></i> Thêm Gói Thường Mới
-          </button>
-        </div>
-        <div id="regular-plans-list" style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- Dynamic Regular plans -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 4: NGÂN HÀNG & VIETQR ==================== -->
-    <div id="tab-payment" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Cấu Hình Ngân Hàng &amp; Thanh Toán VietQR</span>
-        <button type="button" class="btn-save" onclick="saveBankConfig()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin Ngân Hàng
-        </button>
-      </div>
-
-      <div class="panel-card">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Mã Ngân Hàng (Napas ID):</label>
-            <input type="text" id="bank-id" class="form-input" placeholder="VPBANK, MB, VCB, ICB, TCB...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tên Ngân Hàng Hiển Thị:</label>
-            <input type="text" id="bank-name" class="form-input" placeholder="VPBank (Ngân Hàng VN Thịnh Vượng)">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Số Tài Khoản Nhận Tiền:</label>
-            <input type="text" id="bank-account-num" class="form-input" placeholder="2027022007">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Chủ Tài Khoản (In hoa không dấu):</label>
-            <input type="text" id="bank-account-name" class="form-input" placeholder="NGUYEN MINH HIEP">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Tiền Tố Nội Dung Chuyển Khoản (Memo Prefix):</label>
-          <input type="text" id="bank-memo-prefix" class="form-input" placeholder="VIPCAM">
-          <small style="color: var(--text-sub); display: block; margin-top: 6px;">Ví dụ: Khách quét mã sẽ có nội dung là
-            <code>VIPCAM1234</code></small>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 5: CẤU HÌNH API CTV ==================== -->
-    <div id="tab-api" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Cấu Hình API CTV Kawaii &amp; Cụ Cam</span>
-        <button type="button" class="btn-save" onclick="saveApiConfig()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình API
-        </button>
-      </div>
-
-      <!-- Kawaii API -->
-      <div class="panel-card">
-        <div class="panel-title" style="color: var(--vip);">
-          <i class="fa-solid fa-key"></i> API Kawaii Locket CTV (ctv.nodns.vn)
-        </div>
-        <div class="form-group">
-          <label class="form-label">API Key CTV Kawaii (Gói VIP 49+ Filter):</label>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="api-kawaii-key" class="form-input" placeholder="ctv_key_...">
-            <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 20px;"
-              onclick="testKawaiiKey()">
-              <i class="fa-solid fa-vial"></i> Kiểm Tra Key
-            </button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Kawaii API Base URL:</label>
-          <input type="text" id="api-kawaii-base" class="form-input" value="https://ctv.nodns.vn">
-        </div>
-        <div class="form-group">
-          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-weight: 700;">
-            <input type="checkbox" id="auto-activate-vip" style="width: 18px; height: 18px; accent-color: var(--vip);">
-            <span>Tự động kích hoạt VIP ngay khi Webhook nhận được tiền</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Cụ Cam API -->
-      <div class="panel-card">
-        <div class="panel-title" style="color: var(--gold);">
-          <i class="fa-solid fa-server"></i> API Locket Cụ Cam (Cho Locket Thường)
-        </div>
-        <div class="form-group">
-          <label class="form-label">Secret Key Cụ Cam (sk_...):</label>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="api-cucam-key" class="form-input" placeholder="sk_...">
-            <button type="button" class="btn-save"
-              style="white-space: nowrap; padding: 0 20px; background: linear-gradient(135deg, #F59E0B, #D97706);"
-              onclick="testCucamKey()">
-              <i class="fa-solid fa-vial"></i> Kiểm Tra Key
-            </button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Cụ Cam API Base URL:</label>
-          <input type="text" id="api-cucam-base" class="form-input" value="https://locket.2707226.xyz">
-        </div>
-        <div class="form-group">
-          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fff; font-weight: 700;">
-            <input type="checkbox" id="auto-activate-regular"
-              style="width: 18px; height: 18px; accent-color: var(--gold);">
-            <span>Tự động kích hoạt gói Thường khi có tiền về</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Webhook Guide -->
-      <div class="panel-card">
-        <div class="panel-title">
-          <i class="fa-solid fa-webhook"></i> Hướng Dẫn Cấu Hình Webhook Ngân Hàng (Tự Động 100%)
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-          Để hệ thống tự động duyệt đơn và cấp DNS ngay khi khách thanh toán thành công, hãy gắn link Webhook này vào
-          tài khoản Casso.vn hoặc SePay.vn của bạn:
-        </p>
-        <div
-          style="background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 10px; font-family: monospace; font-size: 0.9rem; color: #FDE68A; margin-bottom: 10px;">
-          🔗 Webhook Casso: <code>https://ten-mien-cua-ban/webhook/casso</code><br>
-          🔗 Webhook SePay: <code>https://ten-mien-cua-ban/webhook/sepay</code>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 6: CÀI ĐẶT WEBSITE ==================== -->
-    <div id="tab-settings" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Cài Đặt Thương Hiệu &amp; Giao Diện</span>
-        <button type="button" class="btn-save" onclick="saveSiteSettings()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt
-        </button>
-      </div>
-
-      <div class="panel-card">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Tên Website / Thương Hiệu:</label>
-            <input type="text" id="site-name" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Slogan / Phụ Đề:</label>
-            <input type="text" id="site-slogan" class="form-input">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Số Hotline CSKH:</label>
-            <input type="text" id="site-hotline" class="form-input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Đường Link Zalo CSKH (Cá Nhân):</label>
-            <input type="text" id="site-zalo" class="form-input">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Link Nhóm Zalo 1 (Mới Nhất):</label>
-            <input type="text" id="site-zalo-group1" class="form-input"
-              placeholder="https://zalo.me/g/shprtxgdepc6wscxwmtg">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Link Nhóm Zalo 2 (Dự Phòng):</label>
-            <input type="text" id="site-zalo-group2" class="form-input"
-              placeholder="https://zalo.me/g/qyke3ds1tqzjwudjznrc">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Nội Dung Thông Báo Chạy Chữ (Marquee Banner):</label>
-          <textarea id="site-marquee" class="form-textarea" rows="3"></textarea>
-        </div>
-      </div>
-
-      <!-- Đổi mật khẩu admin -->
-      <div class="panel-card">
-        <div class="panel-title" style="color: var(--rose);">
-          <i class="fa-solid fa-lock"></i> Đổi Mật Khẩu Admin (Bảo Mật Hai Lớp)
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Mật Khẩu Hiện Tại:</label>
-            <input type="password" id="current-admin-pass" class="form-input" placeholder="Nhập mật khẩu hiện tại...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Mật Khẩu Mới:</label>
-            <input type="password" id="new-admin-pass" class="form-input" placeholder="Tối thiểu 6 ký tự...">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Xác Nhận Mật Khẩu Mới:</label>
-            <input type="password" id="confirm-admin-pass" class="form-input" placeholder="Nhập lại mật khẩu mới...">
-          </div>
-          <div class="form-group" style="display: flex; align-items: flex-end;">
-            <button type="button" class="btn-save"
-              style="background: linear-gradient(135deg, #EF4444, #B91C1C); color: #fff;"
-              onclick="changeAdminPassword()">
-              <i class="fa-solid fa-shield"></i> Cập Nhật Mật Khẩu
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-dns-links" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Cấu Hình Link DNS</span>
-        <button type="button" class="btn-save" onclick="saveDnsLinks()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Link DNS
-        </button>
-      </div>
-
-      <div class="panel-card">
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 18px;">
-          Dùng <code>{username}</code> tại vị trí tên tài khoản trong link. Nếu nhập link có đuôi <code>/dns</code> hoặc
-          username mẫu, hệ thống sẽ thay phần cuối bằng username của khách.
-        </p>
-        <div class="form-group">
-          <label class="form-label">Link DNS Locket Thường (Cụ Cam):</label>
-          <input type="url" id="site-dns-regular" class="form-input" placeholder="https://doh.2707226.xyz/{username}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Link DNS Locket VIP (Kawaii):</label>
-          <input type="url" id="site-dns-vip" class="form-input" placeholder="https://ten-mien-vip.example/{username}">
-          <small style="color: var(--text-sub); display: block; margin-top: 6px;">Link Kawaii trả về khi kích hoạt được
-            ưu tiên; link này dùng làm dự phòng.</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 7: QUẢN LÝ ẢNH SHOWROOM VIP ==================== -->
-    <div id="tab-gallery" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Quản Lý Ảnh Showroom VIP (Dạng Dọc Vuốt Ngang)</span>
-      </div>
-
-      <!-- Form Thêm Ảnh Mới -->
-      <div class="panel-card" style="margin-bottom: 24px;">
-        <div class="panel-title" style="color: var(--vip);">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Thêm Ảnh Filter Mới Vào Showroom
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.88rem; margin-bottom: 18px;">
-          Tải ảnh chụp dọc (tỷ lệ 9:16 như story Locket) từ máy tính/điện thoại hoặc dán link ảnh để khách vuốt xem trên
-          trang chủ
-        </p>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Chọn tệp ảnh từ máy (Tự động tải lên):</label>
-            <input type="file" id="new-gallery-file" accept="image/*" class="form-input"
-              onchange="handleGalleryFileUpload(event)" style="padding: 8px;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Hoặc nhập link ảnh (URL):</label>
-            <input type="text" id="new-gallery-url" class="form-input"
-              placeholder="images/filter-photobooth.jpg hoặc https://..." oninput="handleGalleryUrlChange(this.value)">
-          </div>
-        </div>
-
-        <!-- Khung xem trước ảnh preview -->
-        <div id="gallery-preview-box"
-          style="display: none; margin-bottom: 16px; padding: 14px; background: rgba(0,0,0,0.3); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); text-align: center;">
-          <img id="gallery-preview-img" src="" alt="Preview"
-            style="max-height: 240px; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);">
-          <div style="font-size: 12px; color: var(--emerald); margin-top: 6px; font-weight: 700;">✓ Ảnh đã sẵn sàng
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Tiêu đề Filter (Tên hiển thị):</label>
-            <input type="text" id="new-gallery-title" class="form-input" placeholder="Ví dụ: Photobooth Kakka 4 Ô">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Huy hiệu nổi bật (Tag):</label>
-            <input type="text" id="new-gallery-tag" class="form-input" placeholder="Ví dụ: HOT TREND, TRÚNG TIỀN, MỚI">
-          </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 20px;">
-          <label class="form-label">Mô tả ngắn về Filter này:</label>
-          <input type="text" id="new-gallery-caption" class="form-input"
-            placeholder="Ví dụ: Chụp ảnh 4 khung hình cute phong cách Y2K Hàn Quốc">
-        </div>
-
-        <button type="button" class="btn-save"
-          style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #fff; width: auto; padding: 12px 28px;"
-          onclick="submitNewGalleryItem()">
-          <i class="fa-solid fa-plus"></i> Thêm Vào Showroom VIP
-        </button>
-      </div>
-
-      <!-- Danh Sách Ảnh Đang Hiển Thị -->
-      <div class="panel-card">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-          <div class="panel-title" style="margin: 0; color: var(--gold);">
-            <i class="fa-solid fa-layer-group"></i> Danh Sách Ảnh Showroom (<span id="gallery-item-count">0</span> ảnh)
-          </div>
-          <button type="button" class="btn-save" style="padding: 6px 14px; font-size: 12.5px;"
-            onclick="renderAdminGalleryList()">
-            <i class="fa-solid fa-rotate-right"></i> Làm Mới
-          </button>
-        </div>
-
-        <div id="admin-gallery-grid" class="admin-gallery-grid">
-          <!-- Rendered dynamically by admin.js -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB: QUẢN LÝ CTV & ĐẠI LÝ ==================== -->
-    <div id="tab-ctv" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Quản Lý Hệ Thống CTV &amp; Đại Lý Bán Sỉ</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="/ctv.html" target="_blank" class="btn-cancel"
-            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Trang CTV
-          </a>
-          <button type="button" class="btn-save" id="btn-reload-ctv" style="padding: 8px 16px; font-size: 13px;"
-            onclick="loadAdminCtvList(true)">
-            <i class="fa-solid fa-rotate" id="icon-reload-ctv"></i> Tải Lại Danh Sách CTV
-          </button>
-        </div>
-      </div>
-
-      <!-- Card 1: Bật / Tắt chức năng CTV theo ý muốn -->
-      <div class="panel-card">
-        <div class="panel-title"
-          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-          <i class="fa-solid fa-sliders"></i> Tùy Chỉnh Bật / Tắt Chức Năng CTV
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Admin có toàn quyền bật hoặc tắt bất kỳ tính năng hoặc tab dịch vụ nào của bên CTV. Các thay đổi sẽ áp dụng
-          ngay lập tức cho toàn bộ CTV.
-        </p>
-
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-allow-register"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Cho Phép Đăng Ký CTV Mới</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Nếu tắt, khách vào trang CTV sẽ không thể bấm tạo tài khoản mới.
-            </p>
-          </div>
-
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-tab-locket"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Bật Dịch Vụ Locket Gold Thường</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Bật/tắt tab kích hoạt Locket Gold Thường tự động cho CTV.
-            </p>
-          </div>
-
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-tab-vip" style="width: 20px; height: 20px; accent-color: var(--vip);">
-              <span>Bật Dịch Vụ Locket Gold VIP</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Bật/tắt tab bán gói Locket Gold VIP (Filter AI, Photobooth) cho CTV.
-            </p>
-          </div>
-
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14.5px;">
-              <input type="checkbox" id="ctv-cfg-tab-spotify" style="width: 20px; height: 20px; accent-color: #10B981;">
-              <span>Bật Dịch Vụ Spotify VIP</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Bật/tắt tab cấp tài khoản/kích Spotify VIP cho CTV.
-            </p>
-          </div>
-
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label style="display: block; font-weight: 700; color: #fff; font-size: 14.5px; margin-bottom: 6px;">
-              <i class="fa-solid fa-qrcode" style="color: var(--gold);"></i> Tiền Tố Nội Dung Nạp Tiền:
-            </label>
-            <input type="text" id="ctv-cfg-deposit-prefix" class="form-input" placeholder="Ví dụ: NAP"
-              style="font-weight: 800; text-transform: uppercase;">
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px;">
-              Nội dung ngắn: <code style="color: #FDE68A;">NAP + 4 số = NAP9542</code> (chỉ 7 ký tự), không kèm khoảng
-              trắng hay username dài, tránh xung đột lỗi ngân hàng.
-            </p>
-          </div>
-        </div>
-
-        <button type="button" class="btn-save" onclick="saveAdminCtvToggles()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt Bật / Tắt CTV
-        </button>
-      </div>
-
-      <!-- Card: BẢNG GIÁ SỈ & TÙY CHỈNH TÊN GÓI CHO CTV (LOCKET, FILTER AI, SPOTIFY) -->
-      <div class="panel-card">
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <div class="panel-title"
-              style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin: 0;">
-              <i class="fa-solid fa-tags"></i> Bảng Giá Sỉ &amp; Tùy Chỉnh Tên Gói Dành Cho CTV
-            </div>
-            <p style="color: var(--text-sub); font-size: 0.88rem; margin-top: 4px;">
-              Admin có thể đổi <b>Tên Gói</b> (VD: [LKGT3D], Locket Gold 1 Năm, Spotify VIP...), sửa <b>Giá Coin</b> (1
-              coin = 1.000đ) hoặc Bật/Tắt từng gói cho CTV.
-            </p>
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn-save"
-              style="padding: 8px 14px; font-size: 13px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399;"
-              onclick="addNewCtvPlanModal()">
-              <i class="fa-solid fa-plus"></i> Thêm Gói CTV Mới
-            </button>
-            <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;"
-              onclick="saveAdminCtvPlans()">
-              <i class="fa-solid fa-floppy-disk"></i> Lưu Bảng Giá &amp; Tên Gói
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Buttons for CTV plans: Tất cả / Locket Gold Thường / Locket Gold VIP / Spotify -->
-        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-          <button type="button" class="btn-plan-tab active" id="filter-plan-all"
-            onclick="filterAdminCtvPlansTable('all')">Tất Cả Gói</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-locket"
-            onclick="filterAdminCtvPlansTable('locket')"><i class="fa-solid fa-camera"></i> Locket Gold Thường</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-filter"
-            onclick="filterAdminCtvPlansTable('filter')"><i class="fa-solid fa-wand-magic-sparkles"></i> Locket Gold
-            VIP</button>
-          <button type="button" class="btn-plan-tab" id="filter-plan-spotify"
-            onclick="filterAdminCtvPlansTable('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
-        </div>
-
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 130px;">DỊCH VỤ</th>
-                <th style="width: 120px;">MÃ GÓI (ID)</th>
-                <th>TÊN HIỂN THỊ GÓI TRÊN CỔNG CTV</th>
-                <th style="width: 140px;">GIÁ COIN (1c = 1k)</th>
-                <th style="width: 120px;">HẠN DÙNG (NGÀY)</th>
-                <th style="width: 110px;">TRẠNG THÁI</th>
-                <th style="width: 80px;">XÓA</th>
-              </tr>
-            </thead>
-            <tbody id="ctv-plans-table-body">
-              <!-- Rendered dynamically by admin.js -->
-            </tbody>
-          </table>
-        </div>
-
-        <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
-          <button type="button" class="btn-save" onclick="saveAdminCtvPlans()">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu Bảng Giá &amp; Tên Gói CTV
-          </button>
-        </div>
-      </div>
-
-      <!-- Card 2: Danh sách tài khoản CTV & Thao tác Cộng/Trừ tiền, Khóa -->
-      <div class="panel-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <div class="panel-title"
-              style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin: 0;">
-              <i class="fa-solid fa-users"></i> Danh Sách Tài Khoản CTV Dưới Hệ Thống
-            </div>
-            <p style="color: var(--text-sub); font-size: 0.9rem; margin-top: 4px; margin-bottom: 0;">
-              Xem danh sách cộng tác viên, số coin/tiền trong ví, số lượng khách đã kích hoạt. Bạn có thể sửa coin, đổi mật khẩu hoặc xóa tài khoản CTV.
-            </p>
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn-cancel"
-              style="padding: 8px 14px; font-size: 13px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: var(--gold-light);"
-              onclick="quickRestoreXuandieu()">
-              <i class="fa-solid fa-rotate-left"></i> Khôi phục @xuandieu09
-            </button>
-            <button type="button" class="btn-save"
-              style="padding: 8px 14px; font-size: 13px; background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.5); color: #60A5FA;"
-              onclick="openAddCtvUserModal()">
-              <i class="fa-solid fa-user-plus"></i> + Thêm / Khôi Phục CTV
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>TÀI KHOẢN CTV</th>
-                <th>HỌ &amp; TÊN</th>
-                <th>EMAIL</th>
-                <th>SỐ DƯ COIN</th>
-                <th>SỐ DƯ TIỀN (VNĐ)</th>
-                <th>KHÁCH ĐÃ KÍCH</th>
-                <th>TRẠNG THÁI</th>
-                <th>HÀNH ĐỘNG</th>
-              </tr>
-            </thead>
-            <tbody id="ctv-table-body">
-              <tr>
-                <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-sub);">
-                  <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách CTV...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB: QUẢN LÝ TRANG KHÁCH HÀNG ==================== -->
-    <div id="tab-customer-ui" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span>Quản Lý Tính Năng &amp; Giao Diện Trang Khách Hàng</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="index.html" target="_blank" class="btn-cancel"
-            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Xem Trang Khách
-          </a>
-          <button type="button" class="btn-save" onclick="saveCustomerFeatures()">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu Tất Cả Cài Đặt
-          </button>
-        </div>
-      </div>
-
-      <!-- CARD 1: CHẾ ĐỘ BÁN & CHUYỂN ĐỔI GÓI (VIP vs THƯỜNG) -->
-      <div class="panel-card">
-        <div class="panel-title"
-          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <i class="fa-solid fa-toggle-on"></i> Quản Lý Chế Độ Bán (VIP vs Locket Thường)
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Tùy ý bật hoặc tắt chế độ bán VIP hoặc Thường. Nếu chỉ bật 1 chế độ, web sẽ tự động ẩn nút chuyển đổi và chỉ
-          hiển thị chế độ đó cho khách.
-        </p>
-
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
-          <!-- Bật VIP -->
-          <div
-            style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; padding: 18px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
-              <input type="checkbox" id="feat-enable-vip" style="width: 22px; height: 22px; accent-color: var(--vip);">
-              <span>👑 Bật Chế Độ Locket VIP Pro</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12.5px; margin-top: 8px; margin-left: 34px; line-height: 1.5;">
-              Hiển thị các gói VIP 75k, 95k, 150k kèm 49+ Filter AI, Photobooth 4 ô và quay video 60s.
-            </p>
-          </div>
-
-          <!-- Bật Thường -->
-          <div
-            style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 14px; padding: 18px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 800; color: #fff; font-size: 15px;">
-              <input type="checkbox" id="feat-enable-regular"
-                style="width: 22px; height: 22px; accent-color: var(--gold);">
-              <span>🍊 Bật Chế Độ Locket Gold Thường</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12.5px; margin-top: 8px; margin-left: 34px; line-height: 1.5;">
-              Hiển thị các gói Locket Gold Cụ Cam tiết kiệm (dùng thử 1 ngày, 1 tháng, 6 tháng, 1 năm).
-            </p>
-          </div>
-
-          <!-- Chọn chế độ mặc định -->
-          <div
-            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; padding: 18px;">
-            <label style="display: block; font-weight: 800; color: #fff; font-size: 14.5px; margin-bottom: 8px;">
-              <i class="fa-solid fa-arrows-split-up-and-left" style="color: var(--gold);"></i> Chế Độ Hiển Thị Mặc Định:
-            </label>
-            <select id="feat-default-mode" class="form-input" style="font-weight: 700;">
-              <option value="vip">👑 Locket VIP Pro (Khuyên dùng - Doanh thu cao)</option>
-              <option value="regular">🍊 Locket Gold Thường (Tiết kiệm)</option>
-            </select>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 8px;">
-              Khi khách vừa vào trang chủ, hệ thống sẽ mở sẵn tab này trước.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARD 2: BẬT / TẮT CÁC KHỐI GIAO DIỆN TRÊN TRANG KHÁCH HÀNG -->
-      <div class="panel-card">
-        <div class="panel-title"
-          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <i class="fa-solid fa-eye"></i> Bật / Tắt Các Khối Giao Diện &amp; Nút Chức Năng
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Tùy ý ẩn hoặc hiện bất kỳ phần nào trên trang chủ khách hàng chỉ với 1 click.
-        </p>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-          <!-- Marquee Bar -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-marquee"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Thanh Chạy Chữ Khuyến Mãi (Marquee)</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Thanh thông báo chạy ngang trên đầu trang web.
-            </p>
-          </div>
-
-          <!-- Hero Badge -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-hero-badge"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Huy Hiệu Nổi Ở Đầu Trang (Hero Badge)</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Huy hiệu vương miện thông báo bản VIP ở đầu trang.
-            </p>
-          </div>
-
-          <!-- Showroom -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-showroom"
-                style="width: 20px; height: 20px; accent-color: var(--vip);">
-              <span>Khối Showroom Ảnh &amp; Tính Năng Độc Quyền</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Khối ảnh dọc vuốt ngang giới thiệu Filter AI, Photobooth và các thẻ tính năng.
-            </p>
-          </div>
-
-          <!-- Pricing -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-pricing"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Khối Bảng Giá Gói Cước (Pricing)</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Hiển thị các thẻ giá để khách chọn mua gói.
-            </p>
-          </div>
-
-          <!-- DNS Guide -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-dns-guide" style="width: 20px; height: 20px; accent-color: #10B981;">
-              <span>Khối Hướng Dẫn Cài Đặt DNS (3 Bước Safari)</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              3 bước hướng dẫn cài đặt hồ sơ profile trên iPhone.
-            </p>
-          </div>
-
-          <!-- Lookup Order / DNS -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-lookup"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Nút Tra Cứu DNS &amp; Lịch Sử Đơn</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Nút trên thanh điều hướng cho phép khách lấy lại cấu hình cũ.
-            </p>
-          </div>
-
-          <!-- Cổng CTV Nav -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-ctv-nav"
-                style="width: 20px; height: 20px; accent-color: var(--gold);">
-              <span>Nút "Cổng CTV" Trên Thanh Menu</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Hiện nút liên kết dẫn sang trang đăng ký/đăng nhập CTV.
-            </p>
-          </div>
-
-          <!-- Nút Zalo CSKH -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-show-zalo" style="width: 20px; height: 20px; accent-color: #0284C7;">
-              <span>Nút Liên Hệ Zalo CSKH</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Nút chat Zalo hỗ trợ nhanh trên thanh điều hướng.
-            </p>
-          </div>
-
-          <!-- Nút [X] Hủy Thanh Toán -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-allow-cancel" style="width: 20px; height: 20px; accent-color: #EF4444;">
-              <span>Nút [X] Hủy / Đổi Ý Khi Quét Mã VietQR</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Cho phép khách nhấn nút [X] hoặc Hủy để quay lại chọn gói khác.
-            </p>
-          </div>
-
-          <!-- Tự Động Quét Thanh Toán -->
-          <div
-            style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-            <label
-              style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 700; color: #fff; font-size: 14px;">
-              <input type="checkbox" id="feat-auto-check-pay" style="width: 20px; height: 20px; accent-color: #10B981;">
-              <span>Tự Động Đối Soát Thanh Toán (Polling 3s)</span>
-            </label>
-            <p style="color: var(--text-sub); font-size: 12px; margin-top: 6px; margin-left: 32px;">
-              Hệ thống tự động kiểm tra tài khoản và chuyển bước kích hoạt khi nhận tiền.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARD 3: TÙY CHỈNH NỘI DUNG CHỮ & BANNER TRANG CHỦ -->
-      <div class="panel-card">
-        <div class="panel-title"
-          style="color: var(--gold); display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <i class="fa-solid fa-pen-to-square"></i> Tùy Chỉnh Nội Dung Chữ &amp; Banner Trang Chủ
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Thay đổi các câu chữ tiêu đề, phụ đề, thông báo khuyến mãi hiển thị trực tiếp cho khách.
-        </p>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label>Chữ Trong Huy Hiệu Nổi (Hero Dynamic Badge):</label>
-          <input type="text" id="cust-cfg-hero-badge" class="form-input"
-            placeholder="BẢN LOCKET VIP ĐỈNH CAO: 60S VIDEO &amp; 49+ AI FILTER">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label>Tiêu Đề Lớn Đầu Trang (Hero Title — hỗ trợ thẻ HTML):</label>
-          <input type="text" id="cust-cfg-hero-title" class="form-input"
-            placeholder="Cổng Nâng Cấp Locket VIP Pro &amp; Locket Gold Chính Chủ">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label>Đoạn Giới Thiệu Phụ Đề (Hero Subtitle):</label>
-          <textarea id="cust-cfg-hero-subtitle" class="form-input" rows="3"
-            placeholder="Quay video siêu dài 60s, mở khoá 49+ bộ lọc camera AI độc quyền..."></textarea>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 24px;">
-          <label>Nội Dung Chữ Chạy Khuyến Mãi (Marquee Notice):</label>
-          <textarea id="cust-cfg-marquee" class="form-input" rows="2"
-            placeholder="🔥 SALE ĐẶC BIỆT: Nâng cấp Locket VIP 60s..."></textarea>
-        </div>
-
-        <button type="button" class="btn-save" onclick="saveCustomerFeatures()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt Trang Khách Hàng
-        </button>
-      </div>
-
-      <!-- CARD 4: CẤU HÌNH VIDEO & NỘI DUNG HƯỚNG DẪN CÀI ĐẶT DNS -->
-      <div class="panel-card">
-        <div class="panel-title"
-          style="color: #38BDF8; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <i class="fa-solid fa-circle-play"></i> Video &amp; Nội Dung Hướng Dẫn Cài Đặt DNS
-        </div>
-        <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 20px;">
-          Dán link video YouTube hoặc file MP4 để hiển thị trong ô video hướng dẫn DNS và tùy chỉnh các bước hướng dẫn
-          cho khách.
-        </p>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label><i class="fa-brands fa-youtube" style="color: #EF4444;"></i> Link Video Hướng Dẫn DNS (YouTube hoặc
-            file video .mp4):</label>
-          <input type="text" id="cust-cfg-dns-video" class="form-input"
-            placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxx hoặc https://youtu.be/xxxx hoặc link video MP4">
-          <small style="color: var(--text-sub); display: block; margin-top: 5px;">
-            💡 Hỗ trợ mọi định dạng: link YouTube (watch, youtu.be, shorts) hoặc link file trực tiếp (.mp4). Để trống
-            nếu chỉ muốn hiện khung chờ.
-          </small>
-        </div>
-
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
-          <div class="form-group">
-            <label>Tiêu Đề Khối DNS:</label>
-            <input type="text" id="cust-cfg-dns-title" class="form-input"
-              placeholder="Hướng Dẫn Cài Đặt Cấu Hình DNS Locket">
-          </div>
-          <div class="form-group">
-            <label>Phụ Đề Khối DNS:</label>
-            <input type="text" id="cust-cfg-dns-subtitle" class="form-input"
-              placeholder="Chỉ 3 bước nhanh gọn trực tiếp bằng trình duyệt Safari trên iPhone — Hoàn toàn tự động 100%">
-          </div>
-        </div>
-
-        <div
-          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px;">
-          <div class="form-group"
-            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
-            <label style="color: #38BDF8; font-weight: 800;">Bước 1: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step1-title" class="form-input" placeholder="Tải Hồ Sơ Cấu Hình"
-              style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step1-desc" class="form-input" rows="3"
-              placeholder="Sau khi thanh toán hoặc bấm Tra Cứu DNS, mở link bằng trình duyệt Safari..."></textarea>
-          </div>
-          <div class="form-group"
-            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
-            <label style="color: #38BDF8; font-weight: 800;">Bước 2: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step2-title" class="form-input" placeholder="Vào Cài Đặt iPhone Duyệt"
-              style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step2-desc" class="form-input" rows="3"
-              placeholder="Mở Cài đặt iPhone ➔ Chọn mục 'Đã tải về hồ sơ' ngay dưới tên Apple ID..."></textarea>
-          </div>
-          <div class="form-group"
-            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
-            <label style="color: #10B981; font-weight: 800;">Bước 3: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step3-title" class="form-input"
-              placeholder="Bật tin cậy chứng chỉ (bắt buộc)" style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step3-desc" class="form-input" rows="3"
-              placeholder="Vào Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ..."></textarea>
-          </div>
-          <div class="form-group"
-            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
-            <label style="color: #F59E0B; font-weight: 800;">Bước 4: Tiêu Đề &amp; Chi Tiết</label>
-            <input type="text" id="cust-cfg-dns-step4-title" class="form-input" placeholder="Mở lại Locket và kiểm tra"
-              style="margin: 8px 0;">
-            <textarea id="cust-cfg-dns-step4-desc" class="form-input" rows="3"
-              placeholder="Tắt hẳn app rồi mở lại, vào Hồ sơ: thấy huy hiệu / khung Gold là thành công..."></textarea>
-          </div>
-        </div>
-
-        <button type="button" class="btn-save" onclick="saveCustomerFeatures()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Video &amp; Hướng Dẫn DNS
-        </button>
-      </div>
-    </div>
-
-    <!-- ==================== TAB: QUẢN LÝ KHUNG WIDGET (TOÀN DIỆN) ==================== -->
-    <div id="tab-frames" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <span><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--gold);"></i> Quản Lý Toàn Bộ Khung Widget Locket 📸</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <a href="khung.html" target="_blank" class="btn-cancel"
-            style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; color: #F59E0B; border-color: rgba(245, 158, 11, 0.4);">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở Trang Đổi Khung
-          </a>
-          <button type="button" class="btn-save" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border);" onclick="loadAdminFrameManagement()">
-            <i class="fa-solid fa-rotate"></i> Làm Mới
-          </button>
-          <button type="button" class="btn-save" onclick="saveAdminFrameSettings()">
-            <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt Khung
-          </button>
-        </div>
-      </div>
-
-      <!-- 1. Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="label">TỔNG MẪU KHUNG TRONG KHO</div>
-          <div class="val" id="af-stat-total-frames" style="color: var(--gold);">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">KHUNG RIÊNG CỦA SHOP</div>
-          <div class="val" id="af-stat-custom-frames" style="color: #38BDF8;">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">MÁY CHỦ API KHUNG (NODNS)</div>
-          <div class="val" id="af-stat-api-status" style="font-size: 1.25rem; color: #10B981;">
-            <i class="fa-solid fa-circle-check"></i> ĐANG CHẠY
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="label">TRẠNG THÁI TRANG KHÁCH</div>
-          <div class="val" id="af-stat-feature-status" style="font-size: 1.25rem; color: #10B981;">ĐANG BẬT</div>
-        </div>
-      </div>
-
-      <!-- 2. Panel A: Tra Cứu & Can Thiệp Khung Của Bất Kỳ Tài Khoản Nào -->
-      <div class="panel-card" style="border-left: 4px solid var(--gold);">
-        <div class="panel-title">
-          <i class="fa-solid fa-user-gear" style="color: var(--gold);"></i>
-          <span>Tra Cứu &amp; Can Thiệp Khung Của Bất Kỳ Tài Khoản Khách Nào</span>
-        </div>
-        <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 14px;">
-          Admin có thể nhập bất kỳ Username, UID hoặc dán link Locket của khách để xem avatar, kiểm tra khung hiện tại, gán khung tùy ý hoặc gỡ khung về mặc định ngay lập tức.
-        </p>
-        <div class="form-row" style="margin-bottom: 14px;">
-          <div style="flex: 1;">
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="af-user-input" class="form-input" placeholder="ví dụ: tainguyen2408 hoặc dán link locket.cam/..." autocomplete="off">
-              <button type="button" class="btn-save" style="white-space: nowrap; padding: 0 22px;" id="btn-af-lookup" onclick="adminLookupUserFrame()">
-                <i class="fa-solid fa-magnifying-glass"></i> Tra Cứu
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kết quả tra cứu tài khoản -->
-        <div id="af-user-result" style="display: none; background: rgba(0, 0, 0, 0.4); border: 1.5px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 18px; margin-top: 14px;">
-          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <img id="af-user-avatar" src="" alt="Avatar" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--gold); background: #1e293b; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);">
-            <div style="flex: 1; min-width: 220px;">
-              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <b id="af-user-fullname" style="font-size: 1.2rem; color: #fff;">---</b>
-                <span id="af-user-badge" class="badge-status st-activated">Tài khoản hợp lệ</span>
-              </div>
-              <div style="color: var(--text-sub); font-size: 13px; margin-top: 4px;">
-                Username: <b id="af-user-tag" style="color: #38BDF8;">@username</b> &nbsp;|&nbsp;
-                UID: <code id="af-user-uid" style="color: var(--gold); font-size: 12px; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 6px;">---</code>
-              </div>
-              <div style="font-size: 13px; color: #CBD5E1; margin-top: 5px;">
-                Trạng thái khung: <b id="af-user-framestatus" style="color: #6EE7B7;">Mặc định</b> &nbsp;|&nbsp;
-                Lượt đổi: <b id="af-user-quota" style="color: var(--gold);">Không giới hạn</b>
-              </div>
-            </div>
-
-            <!-- Khung ảnh hiện tại của khách (nếu có) -->
-            <div id="af-user-current-frame-box" style="display: none; text-align: center; border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.45); box-shadow: 0 4px 14px rgba(0,0,0,0.3);">
-              <div style="font-size: 11px; color: var(--gold); margin-bottom: 5px; font-weight: 800; text-transform: uppercase;">Khung Đang Dùng:</div>
-              <div style="width: 54px; height: 54px; margin: 0 auto; border-radius: 8px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 12px 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                <img id="af-user-current-frame-img" src="" alt="Khung" style="width: 100%; height: 100%; object-fit: contain;">
-              </div>
-              <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
-                <button type="button" class="btn-save" style="padding: 4px 10px; font-size: 11px; background: linear-gradient(135deg, #0284C7, #2563EB); display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="adminDownloadCurrentCustomerFrame()" title="Tải file PNG khung của khách về máy">
-                  <i class="fa-solid fa-download"></i> Lưu File Khung
-                </button>
-                <div style="display: flex; gap: 6px; justify-content: center; align-items: center; margin-top: 2px;">
-                  <a id="af-user-current-frame-link" href="#" target="_blank" style="font-size: 11px; color: var(--gold); text-decoration: underline;">Xem gốc ↗</a>
-                  <span style="color: var(--text-sub); font-size: 10px;">•</span>
-                  <button type="button" style="background: none; border: none; padding: 0; color: #F87171; font-size: 11px; text-decoration: underline; cursor: pointer;" onclick="adminRemoveUserFrame()">Gỡ khung</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bộ công cụ Admin can thiệp -->
-          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-            <span style="font-size: 13px; font-weight: 800; color: #fff;"><i class="fa-solid fa-screwdriver-wrench" style="color: var(--gold);"></i> Can Thiệp Admin:</span>
-            
-            <button type="button" class="btn-save" style="padding: 9px 18px; font-size: 13px;" onclick="openAdminAssignFrameModal()">
-              <i class="fa-solid fa-paintbrush"></i> Gán Khung Mới Cho Khách
-            </button>
-            <button type="button" class="btn-cancel" style="padding: 9px 18px; font-size: 13px; color: #F87171; border-color: rgba(239, 68, 68, 0.4);" onclick="adminRemoveUserFrame()">
-              <i class="fa-solid fa-trash-can"></i> Gỡ Khung Về Mặc Định
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Panel B: Quản Lý Kho Gallery Mẫu Khung & Khung Độc Quyền -->
-      <div class="panel-card">
-        <div class="panel-title" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-shapes" style="color: #38BDF8;"></i>
-            <span>Kho Mẫu Khung Widget (<span id="af-gallery-total-count">0</span> mẫu)</span>
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn-cancel" style="padding: 8px 14px; font-size: 13px; color: #38BDF8; border-color: rgba(56, 189, 248, 0.4);" onclick="adminDownloadBlankTemplate()" title="Tải khung phôi chuẩn 1080×1080 trong suốt ở giữa để tự vẽ / thiết kế">
-              <i class="fa-solid fa-file-pen"></i> Tải Phôi Trắng 1:1
-            </button>
-            <button type="button" class="btn-save" style="padding: 8px 16px; font-size: 13px;" onclick="openAddFrameModal()">
-              <i class="fa-solid fa-plus"></i> Thêm Mẫu Khung Vào Kho
-            </button>
-          </div>
-        </div>
-
-        <!-- Bộ lọc và tìm kiếm khung -->
-        <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
-          <input type="text" id="af-gallery-search" class="form-input" style="max-width: 320px;" placeholder="🔍 Tìm kiếm mẫu khung theo tên..." oninput="filterAdminGallery()">
-          <select id="af-gallery-filter-type" class="form-select" style="max-width: 250px;" onchange="filterAdminGallery()">
-            <option value="all">Tất cả mẫu khung đang hiển thị</option>
-            <option value="custom">Chỉ khung độc quyền Shop tải lên 👑</option>
-            <option value="community">Chỉ khung Gallery Cộng đồng</option>
-            <option value="hidden">Mẫu khung đã ẩn / đã xóa 🗑️</option>
-          </select>
-        </div>
-
-        <!-- Lưới mẫu khung -->
-        <div id="af-gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; max-height: 580px; overflow-y: auto; padding-right: 6px;">
-          <!-- Dynamically populated -->
-        </div>
-      </div>
-
-      <!-- 4. Panel C: Cấu Hình & Chính Sách Hệ Thống Khung -->
-      <div class="panel-card">
-        <div class="panel-title">
-          <i class="fa-solid fa-sliders" style="color: #A855F7;"></i>
-          <span>Cấu Hình &amp; Chính Sách Hoạt Động Khung</span>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Khóa / Mở Chức Năng Đổi Khung Trên Web Khách:</label>
-            <select id="af-cfg-enabled" class="form-select">
-              <option value="true">🟢 Đang Bật — Khách có thể đổi khung tự do</option>
-              <option value="false">🔴 Tạm Đóng — Tạm khóa và ẩn chức năng đổi khung</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Quy Định Đối Tượng Được Đổi Khung:</label>
-            <select id="af-cfg-require-gold" class="form-select">
-              <option value="false">Mở Tự Do (Bất kỳ tài khoản Locket nào cũng đổi được)</option>
-              <option value="true">👑 Chỉ Khách Đã Kích Hoạt Locket Gold / VIP Mới Được Đổi</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Cho Phép Khách Tự Upload Ảnh PNG Riêng:</label>
-            <select id="af-cfg-allow-upload" class="form-select">
-              <option value="true">Cho phép khách tải ảnh PNG từ điện thoại/máy tính</option>
-              <option value="false">Khóa — Khách chỉ được chọn các mẫu trong Gallery</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Dung Lượng Tối Đa Khách Upload (MB):</label>
-            <input type="number" id="af-cfg-max-size" class="form-input" min="1" max="25" value="8">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label class="form-label">API Key Riêng Cho Khung Ảnh (Bỏ trống sẽ dùng chung Kawaii API Key):</label>
-            <input type="text" id="af-cfg-api-key" class="form-input" placeholder="ví dụ: ctv_key_..." autocomplete="off">
-            <small style="color: var(--text-sub); display: block; margin-top: 4px;">API kết nối tới máy chủ <code>https://khunganh.nodns.vn</code>. Nếu để trống hệ thống sẽ tự lấy key ở mục Cấu hình API.</small>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Thông Báo Lưu Ý Đầu Trang Đổi Khung (Tùy chọn hiển thị banner):</label>
-          <textarea id="af-cfg-notice" class="form-textarea" rows="2" placeholder="ví dụ: Lưu ý vuốt tắt hẳn app Locket rồi mở lại sau 1 phút để thấy widget cập nhật khung mới..."></textarea>
-        </div>
-
-        <button type="button" class="btn-save" onclick="saveAdminFrameSettings()">
-          <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Hệ Thống Khung
-        </button>
-      </div>
-
-      <!-- 5. Panel D: Nhật Ký Đổi Khung & Hoạt Động -->
-      <div class="panel-card">
-        <div class="panel-title" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-clock-rotate-left" style="color: #F59E0B;"></i>
-            <span>Nhật Ký Đổi Khung Gần Đây (<span id="af-logs-count">0</span> lượt)</span>
-          </div>
-          <button type="button" class="btn-cancel" style="padding: 6px 14px; font-size: 12px; color: #F87171; border-color: rgba(239, 68, 68, 0.4);" onclick="clearAdminFrameLogs()">
-            <i class="fa-solid fa-broom"></i> Dọn Sạch Nhật Ký
-          </button>
-        </div>
-
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>THỜI GIAN</th>
-                <th>HÀNH ĐỘNG</th>
-                <th>TÀI KHOẢN KHÁCH</th>
-                <th>MẪU KHUNG</th>
-                <th>THỰC HIỆN BỞI</th>
-                <th>TRẠNG THÁI</th>
-              </tr>
-            </thead>
-            <tbody id="af-logs-table-body">
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-sub);">
-                  Chưa có lượt đổi khung nào được ghi nhận
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB: QUẢN LÝ MÃ GIẢM GIÁ (COUPONS) ==================== -->
-    <div id="tab-coupons" class="admin-tab-pane" style="display: none;">
-      <div class="page-title">
-        <div>
-          <span><i class="fa-solid fa-ticket" style="color: #EC4899;"></i> Quản Lý Mã Giảm Giá &amp; Khuyến Mãi Locket VIP 🏷️</span>
-          <p style="font-size: 13.5px; color: var(--text-sub); margin-top: 4px;">
-            Thiết lập chi tiết từng mã giảm giá, giới hạn ngân sách, số lượt dùng và đối tượng áp dụng
-          </p>
-        </div>
-        <button type="button" class="btn-primary" onclick="openAddCouponForm()">
-          <i class="fa-solid fa-plus"></i> Tạo Mã Giảm Giá Mới
-        </button>
-      </div>
-
-      <!-- Thẻ Thống Kê Nhanh -->
-      <div class="metrics-grid" style="margin-bottom: 24px;">
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">TỔNG MÃ KHUYẾN MÃI</span>
-            <i class="fa-solid fa-tags" style="color: #EC4899;"></i>
-          </div>
-          <div class="metric-value" id="stat-total-coupons">0</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">MÃ ĐANG KÍCH HOẠT</span>
-            <i class="fa-solid fa-circle-check" style="color: #10B981;"></i>
-          </div>
-          <div class="metric-value" id="stat-active-coupons" style="color: #10B981;">0</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-head">
-            <span class="metric-label">TỔNG LƯỢT ĐÃ DÙNG</span>
-            <i class="fa-solid fa-users" style="color: #38BDF8;"></i>
-          </div>
-          <div class="metric-value" id="stat-used-coupons" style="color: #38BDF8;">0</div>
-        </div>
-      </div>
-
-      <!-- Khung Thêm / Sửa Mã Giảm Giá Từng Tí Một (Granular Form) -->
-      <div class="panel-box" id="coupon-editor-panel" style="margin-bottom: 24px;">
-        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
-          <span id="coupon-form-title"><i class="fa-solid fa-pen-to-square" style="color: #EC4899;"></i> Tạo Mã Giảm Giá Mới</span>
-          <button type="button" class="btn-cancel" id="btn-cancel-coupon-edit" style="display: none; padding: 4px 10px; font-size: 12px;" onclick="resetCouponForm()">
-            <i class="fa-solid fa-xmark"></i> Hủy chế độ sửa
-          </button>
-        </div>
-
-        <form id="form-coupon-editor" onsubmit="event.preventDefault(); saveAdminCoupon();">
-          <input type="hidden" id="coupon-edit-id" value="">
-
-          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px;">
-            <div class="form-group">
-              <label class="form-label">Mã Code (Khách nhập để giảm giá) *</label>
-              <input type="text" id="coupon-input-code" class="form-input" placeholder="VD: VIPCAM20, LOCKET50K..." style="text-transform: uppercase; font-weight: 800; letter-spacing: 1px;" required>
-              <small style="color: var(--text-sub); font-size: 11.5px;">Tự động viết hoa, không dấu cách</small>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Tên Chiến Dịch / Mô Tả Khuyến Mãi *</label>
-              <input type="text" id="coupon-input-name" class="form-input" placeholder="VD: Giảm 20.000đ cho gói VIP 1 năm..." required>
-            </div>
-          </div>
-
-          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
-            <div class="form-group">
-              <label class="form-label">Loại Giảm Giá *</label>
-              <select id="coupon-input-type" class="form-select" onchange="handleCouponTypeChange()">
-                <option value="fixed">Số tiền cố định (VNĐ)</option>
-                <option value="percent">Theo phần trăm (%)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" id="lbl-coupon-val">Mức Giảm (VNĐ) *</label>
-              <input type="number" id="coupon-input-val" class="form-input" placeholder="20000" min="1" required>
-            </div>
-
-            <div class="form-group" id="group-max-discount" style="display: none;">
-              <label class="form-label">Giảm Tối Đa (VNĐ)</label>
-              <input type="number" id="coupon-input-max" class="form-input" placeholder="30000 (0 = không giới hạn)" min="0">
-              <small style="color: var(--text-sub); font-size: 11px;">Mức chặn trần khi giảm theo %</small>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Đơn Hàng Tối Thiểu (VNĐ)</label>
-              <input type="number" id="coupon-input-min-order" class="form-input" placeholder="50000 (0 = không yêu cầu)" min="0" value="0">
-            </div>
-          </div>
-
-          <div class="form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 16px;">
-            <div class="form-group">
-              <label class="form-label">Áp Dụng Cho Gói Dịch Vụ *</label>
-              <select id="coupon-input-plans" class="form-select">
-                <option value="all">Tất cả các gói (VIP &amp; Gold Thường)</option>
-                <option value="vip" selected>Chỉ các gói LOCKET VIP 👑</option>
-                <option value="regular">Chỉ các gói LOCKET GOLD Thường ⚡</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Giới Hạn Lượt Dùng Toàn Web</label>
-              <input type="number" id="coupon-input-limit" class="form-input" placeholder="100 (0 = không giới hạn)" min="0" value="100">
-              <small style="color: var(--text-sub); font-size: 11px;">Hết số lượt web sẽ báo mã đã hết hạn</small>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Ngày Hết Hạn</label>
-              <input type="date" id="coupon-input-end-date" class="form-input">
-              <small style="color: var(--text-sub); font-size: 11px;">Để trống nếu mã không bao giờ hết hạn</small>
-            </div>
-          </div>
-
-          <div class="form-row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-weight: 700; font-size: 13.5px;">
-              <input type="checkbox" id="coupon-input-active" checked style="width: 18px; height: 18px; accent-color: #EC4899;">
-              <span>Kích hoạt mã này ngay sau khi lưu</span>
-            </label>
-
-            <button type="submit" class="btn-save" id="btn-save-coupon" style="background: linear-gradient(135deg, #EC4899 0%, #D946EF 100%);">
-              <i class="fa-solid fa-floppy-disk"></i> Lưu Mã Giảm Giá
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Bảng Danh Sách Mã Giảm Giá -->
-      <div class="panel-box">
-        <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center;">
-          <span><i class="fa-solid fa-list-check" style="color: var(--gold);"></i> Danh Sách Mã Giảm Giá Đang Có</span>
-          <button type="button" class="btn-cancel" style="padding: 4px 10px; font-size: 12px;" onclick="loadAdminCoupons(true)">
-            <i class="fa-solid fa-rotate" id="icon-reload-coupons"></i> Làm mới
-          </button>
-        </div>
-
-        <div style="overflow-x: auto;">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>MÃ CODE</th>
-                <th>CHIẾN DỊCH / TÊN MÃ</th>
-                <th>MỨC GIẢM</th>
-                <th>ÁP DỤNG CHO</th>
-                <th>LƯỢT DÙNG</th>
-                <th>HẠN DÙNG</th>
-                <th>TRẠNG THÁI</th>
-                <th>THAO TÁC</th>
-              </tr>
-            </thead>
-            <tbody id="coupons-table-body">
-              <tr>
-                <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-sub);">
-                  <i class="fa-solid fa-spinner fa-spin"></i> Đang tải danh sách mã giảm giá...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Modal Chỉnh Sửa Coin CTV -->
-  <div class="modal-overlay" id="modal-adjust-balance"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div
-      style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 440px; width: 100%; padding: 26px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
-      <h3 style="margin-bottom: 12px; font-size: 1.25rem; color: #fff;">
-        <i class="fa-solid fa-coins" style="color: var(--gold);"></i> Chỉnh Sửa Coin CTV
-      </h3>
-      <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 18px;">
-        CTV: <b id="modal-ctv-user" style="color: var(--gold-light);">@username</b> — Hiện có: <b
-          id="modal-ctv-current-coins" style="color: #10B981;">0</b> Coins
-      </p>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Thao tác:</label>
-        <select id="adjust-balance-type" class="form-input" onchange="handleAdjustTypeChange()">
-          <option value="SET" selected>✏️ Đặt lại số Coin chính xác (Sửa trực tiếp)</option>
-          <option value="ADD">➕ Cộng thêm Coin</option>
-          <option value="SUB">➖ Trừ bớt Coin</option>
-        </select>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label id="adjust-coins-label">Số Coin muốn đặt:</label>
-        <input type="number" id="adjust-balance-coins" class="form-input" placeholder="Ví dụ: 100" min="0" step="1"
-          oninput="handleCoinsInputChange()">
-        <div style="margin-top: 6px; font-size: 12.5px; color: var(--text-sub);">
-          💰 Quy đổi thành tiền: <b id="coins-preview-vnd" style="color: #10B981;">0đ</b> (1 coin = 1.000đ)
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-        <button type="button" class="btn-cancel" onclick="closeAdjustBalanceModal()">Hủy</button>
-        <button type="button" class="btn-save" onclick="executeAdjustBalance()">Lưu Thay Đổi</button>
-      </div>
-    </div>
-  </div>
-
-  
-  <!-- Modal Thêm / Khôi Phục Tài Khoản CTV -->
-  <div class="modal-overlay" id="modal-add-ctv-user"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div
-      style="background: #121622; border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 26px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
-      <h3 style="margin-bottom: 12px; font-size: 1.25rem; color: #fff; display: flex; align-items: center; gap: 8px;">
-        <i class="fa-solid fa-user-plus" style="color: #60A5FA;"></i> Thêm / Khôi Phục Tài Khoản CTV
-      </h3>
-      <p style="color: var(--text-sub); font-size: 13px; margin-bottom: 16px;">
-        Nếu tài khoản bị xóa nhầm, bạn chỉ cần nhập username để khôi phục lại ngay lập tức!
-      </p>
-
-      <!-- Phím tắt khôi phục nhanh tocam_ctv hoặc xuandieu09 -->
-      <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-        <span style="font-size: 12.5px; color: #93C5FD;">Điền nhanh mẫu:</span>
-        <div style="display: flex; gap: 6px;">
-          <button type="button" class="btn-action-sm" onclick="quickFillCtvUser('tocam_ctv', 'ctv@tocams.xyz', 'Tocam123456', 100)" style="background: #10B981; color: #fff; padding: 4px 10px; font-size: 12px; border-radius: 6px; cursor: pointer;">
-            @tocam_ctv (100 Coin)
-          </button>
-          <button type="button" class="btn-action-sm" onclick="quickFillCtvUser('xuandieu09', 'xuandieu09@gmail.com', 'xuandieu123', 0)" style="background: #2563EB; color: #fff; padding: 4px 10px; font-size: 12px; border-radius: 6px; cursor: pointer;">
-            @xuandieu09
-          </button>
-        </div>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 12px;">
-        <label>Tên đăng nhập (Username):</label>
-        <input type="text" id="new-ctv-username" class="form-input" placeholder="Ví dụ: xuandieu09" autocomplete="off">
-      </div>
-      <div class="form-group" style="margin-bottom: 12px;">
-        <label>Email đăng ký:</label>
-        <input type="email" id="new-ctv-email" class="form-input" placeholder="Ví dụ: xuandieu09@gmail.com" autocomplete="off">
-      </div>
-      <div class="form-group" style="margin-bottom: 12px;">
-        <label>Mật khẩu (tối thiểu 6 ký tự gồm chữ và số):</label>
-        <input type="text" id="new-ctv-password" class="form-input" placeholder="Ví dụ: xuandieu123" autocomplete="off">
-      </div>
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Số Coin ban đầu:</label>
-        <input type="number" id="new-ctv-coins" class="form-input" placeholder="0" min="0" value="0">
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-        <button type="button" class="btn-cancel" onclick="closeAddCtvUserModal()">Hủy</button>
-        <button type="button" class="btn-save" onclick="executeAddOrRestoreCtv()" style="background: linear-gradient(135deg, #2563EB, #1D4ED8);">
-          <i class="fa-solid fa-check"></i> Thêm / Khôi Phục
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Thêm Gói CTV Mới -->
-  <div class="modal-overlay" id="modal-add-ctv-plan"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div
-      style="background: #121622; border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 26px; position: relative;">
-      <h3 style="margin-bottom: 14px; font-size: 1.25rem; color: #fff;">
-        <i class="fa-solid fa-plus-circle" style="color: var(--gold);"></i> Thêm Gói Cước Mới Cho CTV
-      </h3>
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Chọn dịch vụ:</label>
-        <select id="new-plan-service" class="form-input">
-          <option value="locket">📷 Locket Gold Thường</option>
-          <option value="filter">✨ Locket Gold VIP (Filter AI Pro 60s)</option>
-          <option value="spotify">🎵 Spotify VIP</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Mã gói (ID viết liền, không dấu, VD: locket_3m, spotify_vv):</label>
-        <input type="text" id="new-plan-id" class="form-input" placeholder="VD: locket_3m">
-      </div>
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Tên hiển thị trên Cổng CTV:</label>
-        <input type="text" id="new-plan-name" class="form-input" placeholder="VD: [LKG3M] — 3 tháng — 20 coin">
-      </div>
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label>Giá Coin (1 coin = 1.000đ):</label>
-        <input type="number" id="new-plan-coin" class="form-input" placeholder="VD: 20" min="1">
-      </div>
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label>Hạn sử dụng (Số ngày, VD: 90, 365, 9999):</label>
-        <input type="number" id="new-plan-days" class="form-input" placeholder="VD: 90" min="1">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" class="btn-cancel" onclick="closeAddCtvPlanModal()">Hủy</button>
-        <button type="button" class="btn-save" onclick="executeAddNewCtvPlan()">Thêm Gói</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Thêm Khung Mới Vào Kho (Admin Upload) -->
-  <div class="modal-overlay" id="modal-add-frame"
-    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #121622; border: 1.5px solid var(--border); border-radius: 20px; max-width: 500px; width: 100%; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <b style="font-size: 1.2rem; color: #fff;"><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--gold);"></i> Thêm Mẫu Khung Vào Kho</b>
-        <button type="button" class="btn-toggle-sidebar" style="width: 32px; height: 32px;" onclick="closeAddFrameModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Tên mẫu khung (*):</label>
-        <input type="text" id="modal-af-name" class="form-input" placeholder="ví dụ: Khung Shin-chan VIP" maxlength="50">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Tải tệp ảnh PNG từ máy tính (Khuyên dùng 1080×1080 trong suốt):</label>
-        <input type="file" id="modal-af-file" accept="image/png,image/jpeg,image/webp" class="form-input" onchange="handleModalFrameFileUpload(this)">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">HOẶC Dán link ảnh trực tiếp (URL):</label>
-        <input type="text" id="modal-af-url" class="form-input" placeholder="https://..." oninput="handleModalFrameUrlInput(this)">
-      </div>
-
-      <!-- Preview ảnh khung -->
-      <div id="modal-af-preview-box" style="display: none; text-align: center; margin-bottom: 14px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
-        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Xem trước mẫu khung:</div>
-        <img id="modal-af-preview-img" src="" alt="Preview" style="max-width: 140px; max-height: 140px; object-fit: contain; border-radius: 12px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 16px 16px;">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 18px;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #CBD5E1; cursor: pointer;">
-          <input type="checkbox" id="modal-af-is-vip" checked style="accent-color: var(--gold); width: 18px; height: 18px;">
-          <span>Đánh dấu mẫu khung VIP Độc Quyền Tổ Cam (Hiện huy hiệu 👑)</span>
-        </label>
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button type="button" class="btn-cancel" onclick="closeAddFrameModal()">Hủy</button>
-        <button type="button" class="btn-save" id="btn-submit-add-frame" onclick="submitAddNewFrame()">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Thêm Vào Kho Khung
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Gán Khung Trực Tiếp Cho Khách (Admin Assign Frame) -->
-  <div class="modal-overlay" id="modal-assign-frame"
-    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #121622; border: 1.5px solid var(--border); border-radius: 20px; max-width: 540px; width: 100%; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <b style="font-size: 1.2rem; color: #fff;"><i class="fa-solid fa-paintbrush" style="color: var(--gold);"></i> Gán Khung Cho Khách Hàng</b>
-        <button type="button" class="btn-toggle-sidebar" style="width: 32px; height: 32px;" onclick="closeAdminAssignFrameModal()"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <p style="color: var(--text-sub); font-size: 13.5px; margin-bottom: 14px;">
-        Đang can thiệp tài khoản: <b id="modal-assign-target-user" style="color: #38BDF8;">@username</b>
-      </p>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Cách 1: Chọn nhanh từ kho mẫu khung của shop:</label>
-        <select id="modal-assign-frame-select" class="form-select" onchange="handleAssignSelectChange(this)">
-          <option value="">-- Chọn 1 mẫu khung trong kho --</option>
-        </select>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Cách 2: Hoặc tải tệp ảnh PNG riêng cho khách này:</label>
-        <input type="file" id="modal-assign-file" accept="image/png,image/jpeg,image/webp" class="form-input" onchange="handleAssignFileUpload(this)">
-      </div>
-
-      <div class="form-group" style="margin-bottom: 14px;">
-        <label class="form-label">Cách 3: Hoặc dán link ảnh khung (URL):</label>
-        <input type="text" id="modal-assign-url" class="form-input" placeholder="https://..." oninput="handleAssignUrlInput(this)">
-      </div>
-
-      <!-- Preview ảnh chuẩn bị gán -->
-      <div id="modal-assign-preview-box" style="display: none; text-align: center; margin-bottom: 14px; background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
-        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 6px;">Xem trước khung chuẩn bị gán:</div>
-        <img id="modal-assign-preview-img" src="" alt="Preview" style="max-width: 140px; max-height: 140px; object-fit: contain; border-radius: 12px; background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 0 / 16px 16px;">
-        <div id="modal-assign-frame-name-text" style="font-size: 12px; color: var(--gold); font-weight: 700; margin-top: 4px;"></div>
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;">
-        <button type="button" class="btn-cancel" onclick="closeAdminAssignFrameModal()">Hủy</button>
-        <button type="button" class="btn-save" id="btn-submit-assign-frame" onclick="executeAdminAssignFrame()">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Xác Nhận Gán Khung Ngay
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="admin-toast"></div>
-
-  <script src="js/admin.js"></script>
-</body>
-
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Quản Trị Hệ Thống (Admin Panel)</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .btn-logout {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Grid Thống Kê */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+
+    .stat-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .stat-card .value {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    /* Bảng Quản Lý Đơn Hàng */
+    .panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #334155;
+      margin-bottom: 32px;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #334155;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .badge-star {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+      border: 1px solid var(--warning);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 6px;
+    }
+
+    .status-paid {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .btn-activate {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Form Cấu Hình */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-group input {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: white;
+    }
+
+    .btn-save {
+      background: var(--success);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Hệ Thống Quản Trị (Admin Panel)</h1>
+      <button class="btn-logout" onclick="executeLogout()">Đăng xuất</button>
+    </div>
+
+    <!-- Thống kê tổng quan -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Tổng Doanh Thu</h3>
+        <div class="value" id="total-revenue">0 VNĐ</div>
+      </div>
+      <div class="stat-card">
+        <h3>Tổng Người Dùng</h3>
+        <div class="value" id="total-users">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Đơn Đang Chờ Xử Lý</h3>
+        <div class="value" id="active-orders">0</div>
+      </div>
+    </div>
+
+    <!-- Danh Sách Đơn Hàng & Kích Hoạt VIP -->
+    <div class="panel">
+      <h2>Danh Sách Đơn Hàng & Kích Hoạt VIP</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Tài khoản</th>
+            <th>Gói cước</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table-body">
+          <!-- Dữ liệu JS tự động render vào đây -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cấu Hình Hệ Thống -->
+    <div class="panel">
+      <h2>Cấu Hình Ngân Hàng Thanh Toán</h2>
+      <form onsubmit="saveBankConfig(event)">
+        <div class="form-group">
+          <label for="bank-name">Tên Ngân Hàng</label>
+          <input type="text" id="bank-name" placeholder="VD: MBBank, Vietcombank" required />
+        </div>
+        <div class="form-group">
+          <label for="account-number">Số Tài Khoản</label>
+          <input type="text" id="account-number" placeholder="Số tài khoản nhận tiền" required />
+        </div>
+        <div class="form-group">
+          <label for="account-holder">Chủ Tài Khoản</label>
+          <input type="text" id="account-holder" placeholder="Tên chủ tài khoản" required />
+        </div>
+        <button type="submit" class="btn-save">Lưu Cấu Hình</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT XỬ LÝ ADMIN PANEL -->
+  <script>
+    // 1. Cấu hình & Biến toàn cục
+    const API_BASE_URL = '/api/admin';
+    const PRIVILEGED_USERS = ['truongphutrong', 'teongwei'];
+
+    // 2. Kiểm tra xác thực khi tải trang
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAdminAuthAndLoad();
+    });
+
+    function getAdminToken() {
+      return localStorage.getItem('adminToken');
+    }
+
+    async function checkAdminAuthAndLoad() {
+      const token = getAdminToken();
+      if (!token) {
+        // Chuyển sang trang đăng nhập nếu chưa có token
+        window.location.href = '/login.html';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/overview`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          executeLogout();
+          return;
+        }
+
+        const data = await res.json();
+        renderOverview(data);
+        loadOrdersList();
+      } catch (error) {
+        console.error('Lỗi khởi tạo hệ thống:', error);
+      }
+    }
+
+    // 3. Quản lý Thống kê
+    function renderOverview(data) {
+      const revenueEl = document.getElementById('total-revenue');
+      const usersEl = document.getElementById('total-users');
+      const activeOrdersEl = document.getElementById('active-orders');
+
+      if (revenueEl) revenueEl.textContent = `${(data.revenue || 0).toLocaleString()} VNĐ`;
+      if (usersEl) usersEl.textContent = data.usersCount || 0;
+      if (activeOrdersEl) activeOrdersEl.textContent = data.activeOrdersCount || 0;
+    }
+
+    // 4. Load & Render Danh Sách Đơn Hàng
+    async function loadOrdersList() {
+      const token = getAdminToken();
+      try {
+        const res = await fetch(`${API_BASE_URL}/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const orders = await res.json();
+        renderOrdersTable(orders);
+      } catch (error) {
+        console.error('Lỗi khi tải danh sách đơn hàng:', error);
+      }
+    }
+
+    function renderOrdersTable(orders) {
+      const tableBody = document.getElementById('orders-table-body');
+      if (!tableBody) return;
+
+      tableBody.innerHTML = '';
+      if (!orders || orders.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Không có đơn hàng nào.</td></tr>';
+        return;
+      }
+
+      orders.forEach(order => {
+        const isSpecialUser = PRIVILEGED_USERS.includes(order.username?.toLowerCase());
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>
+            <strong>${order.username}</strong>
+            ${isSpecialUser ? '<span class="badge badge-star">★ Đã ưu tiên</span>' : ''}
+          </td>
+          <td>${order.planName}</td>
+          <td>${order.status === 'paid' ? '<span class="status-paid">Đã thanh toán</span>' : 'Chờ xử lý'}</td>
+          <td>
+            <button onclick="manualActivateOrder('${order.id}', '${order.username}')" class="btn-activate">
+              Kích hoạt VIP
+            </button>
+            <button onclick="deleteOrder('${order.id}')" class="btn-delete">Xóa</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // 5. Kích hoạt VIP thủ công
+    async function manualActivateOrder(orderId, username) {
+      const token = getAdminToken();
+      const isPrivileged = PRIVILEGED_USERS.includes(username?.toLowerCase());
+      
+      try {
+        const res = await fetch(`${API_BASE_URL}/activate-vip`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ 
+            orderId, 
+            username,
+            isVip: true,
+            isPermanent: isPrivileged
+          })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          alert(`Đã kích hoạt thành công cho tài khoản ${username}!`);
+          loadOrdersList();
+        } else {
+          alert(`Lỗi: ${result.error || 'Không thể kích hoạt đơn hàng'}`);
+        }
+      } catch (error) {
+        console.error('Lỗi kích hoạt VIP:', error);
+      }
+    }
+
+    // 6. Xóa Đơn Hàng
+    async function deleteOrder(orderId) {
+      if (!confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) return;
+      const token = getAdminToken();
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          loadOrdersList();
+        } else {
+          alert('Không thể xóa đơn hàng');
+        }
+      } catch (error) {
+        console.error('Lỗi khi xóa đơn hàng:', error);
+      }
+    }
+
+    // 7. Lưu Cấu Hình Ngân Hàng
+    async function saveBankConfig(event) {
+      event.preventDefault();
+      const token = getAdminToken();
+      const formData = {
+        bankName: document.getElementById('bank-name').value,
+        accountNumber: document.getElementById('account-number').value,
+        accountHolder: document.getElementById('account-holder').value
+      };
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/config/bank`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (res.ok) {
+          alert('Đã lưu cấu hình ngân hàng thành công!');
+        }
+      } catch (error) {
+        console.error('Lỗi khi lưu ngân hàng:', error);
+      }
+    }
+
+    // 8. Đăng Xuất
+    function executeLogout() {
+      localStorage.removeItem('adminToken');
+      window.location.href = '/login.html';
+    }
+  </script>
+</body>
 </html>
