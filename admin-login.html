@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -20,26 +19,17 @@
     :root {
       --bg-dark: #090B10;
       --bg-card: #141824;
-      --bg-card-hover: #1A2030;
       --gold: #F59E0B;
       --gold-light: #FDE68A;
       --vip: #8B5CF6;
       --emerald: #10B981;
       --rose: #EF4444;
       --border: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(245, 158, 11, 0.5);
       --text: #F8FAFC;
       --text-sub: #94A3B8;
-      --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Nunito', sans-serif;
@@ -54,7 +44,6 @@
       overflow: hidden;
     }
 
-    /* Ambient Background Glow */
     .glow-sphere {
       position: absolute;
       border-radius: 50%;
@@ -63,21 +52,8 @@
       pointer-events: none;
     }
 
-    .glow-1 {
-      width: 450px;
-      height: 450px;
-      background: radial-gradient(circle, #F59E0B, #EA580C);
-      top: -100px;
-      right: -100px;
-    }
-
-    .glow-2 {
-      width: 450px;
-      height: 450px;
-      background: radial-gradient(circle, #8B5CF6, #6366F1);
-      bottom: -100px;
-      left: -100px;
-    }
+    .glow-1 { width: 450px; height: 450px; background: radial-gradient(circle, #F59E0B, #EA580C); top: -100px; right: -100px; }
+    .glow-2 { width: 450px; height: 450px; background: radial-gradient(circle, #8B5CF6, #6366F1); bottom: -100px; left: -100px; }
 
     .login-container {
       width: 100%;
@@ -87,9 +63,8 @@
       border-radius: 28px;
       padding: 40px 32px;
       text-align: center;
-      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       position: relative;
       z-index: 10;
     }
@@ -110,45 +85,21 @@
       text-transform: uppercase;
     }
 
-    .brand-badge i {
-      color: var(--gold);
-    }
-
-    .login-logo {
-      font-size: 52px;
-      margin-bottom: 12px;
-      line-height: 1;
-      filter: drop-shadow(0 6px 16px rgba(245, 158, 11, 0.4));
-    }
+    .login-logo { font-size: 52px; margin-bottom: 12px; line-height: 1; }
 
     h1 {
       font-size: 1.65rem;
       font-weight: 900;
       margin-bottom: 8px;
-      letter-spacing: -0.3px;
       background: linear-gradient(135deg, #FFFFFF 40%, var(--gold-light) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
-      color: var(--text-sub);
-      font-size: 0.92rem;
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
+    .subtitle { color: var(--text-sub); font-size: 0.92rem; margin-bottom: 28px; line-height: 1.5; }
 
-    .form-group {
-      position: relative;
-      margin-bottom: 18px;
-      text-align: left;
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
+    .form-group { position: relative; margin-bottom: 18px; text-align: left; }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
 
     .input-icon {
       position: absolute;
@@ -156,7 +107,6 @@
       color: var(--text-sub);
       font-size: 16px;
       pointer-events: none;
-      transition: color 0.2s ease;
     }
 
     .login-input {
@@ -171,20 +121,11 @@
       font-family: inherit;
       outline: none;
       transition: all 0.25s ease;
-      letter-spacing: 0.5px;
-      user-select: text !important;
-      -webkit-user-select: text !important;
     }
 
     .login-input:focus {
       border-color: var(--gold);
       box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
-      background: rgba(9, 11, 16, 0.85);
-    }
-
-    .login-input:focus + .input-icon,
-    .login-input:focus ~ .input-icon {
-      color: var(--gold);
     }
 
     .toggle-pass-btn {
@@ -196,14 +137,6 @@
       font-size: 16px;
       cursor: pointer;
       padding: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s;
-    }
-
-    .toggle-pass-btn:hover {
-      color: var(--text);
     }
 
     .btn-login {
@@ -226,21 +159,7 @@
       margin-top: 10px;
     }
 
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(245, 158, 11, 0.45);
-      filter: brightness(1.08);
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-    }
-
-    .btn-login:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .btn-login:hover { transform: translateY(-2px); filter: brightness(1.08); }
 
     .error-box {
       margin-top: 18px;
@@ -254,14 +173,7 @@
       display: none;
       align-items: center;
       gap: 10px;
-      line-height: 1.4;
       text-align: left;
-    }
-
-    .error-box i {
-      color: var(--rose);
-      font-size: 16px;
-      flex-shrink: 0;
     }
 
     .security-badge {
@@ -274,10 +186,7 @@
       color: var(--text-sub);
       font-weight: 700;
     }
-
-    .security-badge i {
-      color: var(--emerald);
-    }
+    .security-badge i { color: var(--emerald); }
 
     .back-home {
       display: inline-block;
@@ -286,12 +195,8 @@
       text-decoration: none;
       font-size: 12.5px;
       font-weight: 700;
-      transition: color 0.2s;
     }
-
-    .back-home:hover {
-      color: var(--gold);
-    }
+    .back-home:hover { color: var(--gold); }
   </style>
 </head>
 
@@ -306,7 +211,7 @@
 
     <div class="login-logo">👑</div>
     <h1>TỔ CAM ADMIN</h1>
-    <p class="subtitle">Đăng nhập bằng mật khẩu quản trị viên để mở khóa trung tâm điều khiển</p>
+    <p class="subtitle">Nhập mật khẩu quản trị viên để mở khóa trung tâm điều khiển</p>
 
     <form id="admin-login-form" onsubmit="event.preventDefault(); handleLogin();">
       <div class="form-group">
@@ -336,7 +241,6 @@
     <a href="/" class="back-home"><i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ Locket VIP</a>
   </div>
 
-  <script src="js/security-shield.js"></script>
   <script>
     function togglePasswordVisibility() {
       const pass = document.getElementById('admin-password');
@@ -377,6 +281,8 @@
 
         if (res.ok && data.ok) {
           if (data.token) {
+            // Lưu token vào localStorage để file admin.html nhận diện
+            localStorage.setItem('adminToken', data.token);
             localStorage.setItem('locket_vip_admin_token', data.token);
           }
           btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Thành công! Đang chuyển hướng...';
@@ -407,5 +313,4 @@
     }
   </script>
 </body>
-
 </html>
