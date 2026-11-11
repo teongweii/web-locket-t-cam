@@ -127,24 +127,25 @@ app.get('/api/config/public', (req, res) => {
   res.json({ ok: true, data: settings });
 });
  
-// 2. Tra cứu username Locket (Fix triệt để lỗi pattern)
+// 2. Tra cứu username Locket
 app.get('/api/user/lookup', (req, res) => {
   const username = cleanLocketUsername(req.query.username || req.query.user || '');
   if (!username) {
     return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username Locket!' });
   }
  
-  // Trả về thông tin hợp lệ để frontend khớp pattern hiển thị
   res.json({
     ok: true,
     found: true,
+    status: 'success',
     data: {
       username: username,
       fullName: username,
-      uid: 'uid_' + Date.now(),
+      uid: 'uid_' + username,
       avatarUrl: null,
       hasGold: false,
-      daysLeft: 0
+      daysLeft: 0,
+      gold: { has_gold: false, days_left: 0 }
     }
   });
 });
@@ -190,7 +191,7 @@ app.post('/api/order/create', (req, res) => {
   res.json({ ok: true, order: newOrder });
 });
  
-// 4. Kiểm tra trạng thái thanh toán (Polling từ frontend)
+// 4. Kiểm tra trạng thái thanh toán
 app.get('/check-payment', (req, res) => {
   const username = cleanLocketUsername(req.query.username || '');
   if (!username) return res.status(400).json({ error: 'Thiếu username' });
@@ -218,7 +219,7 @@ app.get('/api/admin/orders', requireAdmin, (req, res) => {
   res.json({ ok: true, orders });
 });
  
-// 6. Admin duyệt / cập nhật đơn hàng
+// 6. Admin cập nhật trạng thái đơn hàng
 app.post('/api/admin/order/update-status', requireAdmin, (req, res) => {
   const { orderId, status } = req.body || {};
   const orders = loadOrders();
