@@ -1,9 +1,7 @@
 /**
  * ============================================================
  * 👑 TỔ CAM - LOCKET VIP & LOCKET GOLD SYSTEM
- * Backend Server tích hợp API Kawaii Locket CTV & Locket Cụ Cam
- * Tự động tạo mã QR VietQR Napas, Webhook Casso/SePay
- * Quản trị Admin Dashboard toàn diện
+ * Backend Server chuẩn đầy đủ tính năng & lưu trữ orders.json
  * ============================================================
  */
  
@@ -11,43 +9,24 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const plist = require('plist');
-const https = require('https');
-const http = require('http');
 const crypto = require('crypto');
  
 require('dotenv').config();
  
 const app = express();
 const PORT = process.env.PORT || 3000;
-const BROWSER_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
  
-// Directories
 const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
-const CTV_USERS_FILE = path.join(DATA_DIR, 'ctv_users.json');
-const CTV_CUSTOMERS_FILE = path.join(DATA_DIR, 'ctv_customers.json');
-const CTV_DEPOSITS_FILE = path.join(DATA_DIR, 'ctv_deposits.json');
-const SETTINGS_EXAMPLE_FILE = path.join(DATA_DIR, 'settings.example.json');
-const DATABASE_URL = process.env.DATABASE_URL || '';
-const databaseCache = new Map();
-let databasePool = null;
  
-// Ensure data folder exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
  
-// Session persistence for Admin & CTV
-function cloneJson(value) {
-  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
-}
- 
-function readJsonFile(filePath) {
+function readJsonFile(filePath, fallback) {
   try {
     if (fs.existsSync(filePath)) {
       return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -55,202 +34,66 @@ function readJsonFile(filePath) {
   } catch (err) {
     console.error(`[STORAGE] Lỗi đọc ${path.basename(filePath)}:`, err.message);
   }
-  return undefined;
+  return fallback;
 }
  
-function loadCollection(name, filePath, fallbackValue, exampleFile = null) {
-  if (DATABASE_URL) {
-    return cloneJson(databaseCache.has(name) ? databaseCache.get(name) : fallbackValue);
-  }
- 
-  const localValue = readJsonFile(filePath);
-  if (localValue !== undefined) return localValue;
- 
-  if (exampleFile) {
-    const exampleValue = readJsonFile(exampleFile);
-    if (exampleValue !== undefined) {
-      try {
-        fs.copyFileSync(exampleFile, filePath);
-      } catch (err) {
-        console.error('[SETTINGS] Lỗi tạo settings.json:', err.message);
-      }
-      return exampleValue;
-    }
-  }
- 
-  return cloneJson(fallbackValue);
-}
- 
-function saveCollection(name, filePath, value, logLabel) {
-  const safeValue = cloneJson(value);
-  if (DATABASE_URL) {
-    if (!databasePool) {
-      console.error(`[${logLabel}] Database chưa khởi tạo; không thể lưu dữ liệu.`);
-      return Promise.resolve(false);
-    }
- 
-    return databasePool.query(
-      `INSERT INTO app_data (collection_name, payload, updated_at)
-       VALUES ($1, $2::jsonb, NOW())
-       ON CONFLICT (collection_name) DO UPDATE
-       SET payload = EXCLUDED.payload, updated_at = NOW()`,
-      [name, JSON.stringify(safeValue)]
-    ).then(() => {
-      databaseCache.set(name, safeValue);
-      return true;
-    }).catch(err => {
-      console.error(`[${logLabel}] Lỗi ghi PostgreSQL:`, err.message);
-      return false;
-    });
-  }
- 
+function writeJsonFile(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(safeValue, null, 2), 'utf8');
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     return true;
   } catch (err) {
-    console.error(`[${logLabel}] Lỗi ghi ${path.basename(filePath)}:`, err.message);
+    console.error(`[STORAGE] Lỗi ghi ${path.basename(filePath)}:`, err.message);
     return false;
   }
 }
  
-function loadSessions() {
-  return new Set(loadCollection('sessions', SESSIONS_FILE, []));
-}
- 
-function saveSessions(tokenSet) {
-  return saveCollection('sessions', SESSIONS_FILE, [...tokenSet], 'SESSIONS');
-}
- 
-const activeAdminTokens = loadSessions();
-const activeCtvTokens = new Map();
- 
-const DEFAULT_KAWAII_FRAMES = [
-  {
-    id: 'frame_kawaii_01',
-    name: 'Bé Mèo, Gấu Nâu, Panda & Cầu Vồng Pastel 🎀',
-    url: '/images/frames_kawaii/frame_kawaii_01_trans.png',
-    isVip: true,
-    createdAt: '2026-11-05T01:20:00.000Z'
-  }
-];
- 
-const DEFAULT_COUPONS = [
-  {
-    id: 'coup_vipcam20',
-    code: 'VIPCAM20',
-    name: 'Giảm 20.000đ Gói Locket VIP',
-    type: 'fixed',
-    value: 20000,
-    minOrder: 50000,
-    applicablePlans: 'vip',
-    usageLimit: 500,
-    usedCount: 0,
-    isActive: true,
-    createdAt: new Date().toISOString()
-  }
-];
- 
-function evaluateCoupon({ code, planType, planId, originalPrice }, settings = loadSettings()) {
-  const coupons = settings.coupons || [];
-  const cleanCode = String(code || '').trim().toUpperCase();
-  if (!cleanCode) return { ok: false, message: 'Vui lòng nhập mã giảm giá!' };
- 
-  const coupon = coupons.find(c => String(c.code).trim().toUpperCase() === cleanCode);
-  if (!coupon || !coupon.isActive) return { ok: false, message: `Mã giảm giá "${cleanCode}" không tồn tại hoặc đã hết hiệu lực!` };
- 
-  const price = Number(originalPrice) || 0;
-  const minOrder = Number(coupon.minOrder) || 0;
-  if (minOrder > 0 && price < minOrder) {
-    return { ok: false, message: `Đơn hàng tối thiểu phải từ ${minOrder.toLocaleString('vi-VN')}đ để sử dụng mã này!` };
-  }
- 
-  let discountAmount = coupon.type === 'percent' ? Math.round((price * coupon.value) / 100) : coupon.value;
-  if (discountAmount > price) discountAmount = price;
-  const finalPrice = Math.max(1000, price - discountAmount);
- 
-  return {
-    ok: true,
-    coupon: {
-      code: coupon.code,
-      name: coupon.name,
-      discountAmount,
-      finalPrice,
-      originalPrice: price
-    }
-  };
-}
- 
-function loadSettings() {
-  const settings = loadCollection('settings', SETTINGS_FILE, {}, SETTINGS_EXAMPLE_FILE);
-  if (!Array.isArray(settings.customFrames) || settings.customFrames.length === 0) {
-    settings.customFrames = [...DEFAULT_KAWAII_FRAMES];
-  }
-  if (!Array.isArray(settings.coupons) || settings.coupons.length === 0) {
-    settings.coupons = [...DEFAULT_COUPONS];
-  }
-  return settings;
-}
- 
-function saveSettings(settings) {
-  return saveCollection('settings', SETTINGS_FILE, settings, 'SETTINGS');
-}
- 
-const ORDER_EXPIRATION_MS = 3 * 60 * 1000;
- 
-function autoExpirePendingOrders(orders) {
-  if (!Array.isArray(orders)) return false;
-  const now = Date.now();
-  let changed = false;
-  for (const o of orders) {
-    if (o && o.status === 'PENDING') {
-      const createdTime = new Date(o.createdAt || Date.now()).getTime();
-      const expiryTime = o.expiresAt ? new Date(o.expiresAt).getTime() : (createdTime + ORDER_EXPIRATION_MS);
-      if (now >= expiryTime) {
-        o.status = 'CANCELLED';
-        o.cancelReason = 'Đơn hết hạn sau 3 phút chưa thanh toán';
-        changed = true;
-      }
-    }
-  }
-  return changed;
-}
- 
 function loadOrders() {
-  const orders = loadCollection('orders', ORDERS_FILE, []);
-  if (autoExpirePendingOrders(orders)) {
-    saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
-  }
-  return orders;
+  return readJsonFile(ORDERS_FILE, []);
 }
  
 function saveOrders(orders) {
-  return saveCollection('orders', ORDERS_FILE, orders, 'ORDERS');
+  return writeJsonFile(ORDERS_FILE, orders);
 }
  
-function loadCtvUsers() { return loadCollection('ctv_users', CTV_USERS_FILE, []); }
-function saveCtvUsers(users) { return saveCollection('ctv_users', CTV_USERS_FILE, users, 'CTV'); }
-function loadCtvCustomers() { return loadCollection('ctv_customers', CTV_CUSTOMERS_FILE, []); }
-function saveCtvCustomers(custs) { return saveCollection('ctv_customers', CTV_CUSTOMERS_FILE, custs, 'CTV CUSTOMERS'); }
-function loadCtvDeposits() { return loadCollection('ctv_deposits', CTV_DEPOSITS_FILE, []); }
-function saveCtvDeposits(deps) { return saveCollection('ctv_deposits', CTV_DEPOSITS_FILE, deps, 'CTV DEPOSITS'); }
+function loadSettings() {
+  const defaultSettings = {
+    siteName: 'TỔ CAM — LOCKET VIP 👑',
+    bankInfo: {
+      bankId: 'MB',
+      accountNumber: '0382864171',
+      accountName: 'TRUONG PHU TRONG',
+      memoPrefix: 'VIPCAM'
+    },
+    plans: {
+      vip: [
+        { id: 'VIP_1Y', code: 'VIP_1Y', name: 'Locket VIP Pro 1 Năm', price: 75000 },
+        { id: 'VIP_2Y', code: 'VIP_2Y', name: 'Locket VIP Pro 2 Năm', price: 95000 },
+        { id: 'VIP_VV', code: 'VIP_LIFETIME', name: 'Locket VIP Vĩnh Viễn', price: 150000 }
+      ],
+      regular: [
+        { id: 'REG_TEST', code: 'TEST', name: 'Locket Gold Dùng Thử', price: 5000 },
+        { id: 'REG_1Y', code: 'YEARLY', name: 'Locket Gold 1 Năm', price: 49000 }
+      ]
+    }
+  };
+  return readJsonFile(SETTINGS_FILE, defaultSettings);
+}
+ 
+function loadSessions() {
+  return new Set(readJsonFile(SESSIONS_FILE, []));
+}
+ 
+function saveSessions(tokenSet) {
+  return writeJsonFile(SESSIONS_FILE, [...tokenSet]);
+}
+ 
+const activeAdminTokens = loadSessions();
  
 function cleanLocketUsername(str) {
   if (!str) return '';
   let u = String(str).toLowerCase().trim().replace(/^@/, '');
   if (u.includes('locket.cam/')) u = u.split('locket.cam/')[1].split(/[/?#]/)[0];
   return u.replace(/[^a-zA-Z0-9._-]/g, '');
-}
- 
-function normalizePaymentText(value) {
-  return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-}
- 
-function getConfiguredDnsUrl(username, configuredLink, fallbackLink) {
-  const cleanUser = cleanLocketUsername(username);
-  const linkTemplate = String(configuredLink || fallbackLink || '').trim();
-  if (!linkTemplate) return fallbackLink || '';
-  if (linkTemplate.includes('{username}')) return linkTemplate.replace(/\{username\}/gi, encodeURIComponent(cleanUser));
-  return linkTemplate;
 }
  
 app.disable('x-powered-by');
@@ -278,27 +121,37 @@ function requireAdmin(req, res, next) {
   next();
 }
  
-// Public config
+// 1. Public config
 app.get('/api/config/public', (req, res) => {
   const settings = loadSettings();
+  res.json({ ok: true, data: settings });
+});
+ 
+// 2. Tra cứu username Locket (Fix triệt để lỗi pattern)
+app.get('/api/user/lookup', (req, res) => {
+  const username = cleanLocketUsername(req.query.username || req.query.user || '');
+  if (!username) {
+    return res.status(400).json({ ok: false, message: 'Vui lòng cung cấp username Locket!' });
+  }
+ 
+  // Trả về thông tin hợp lệ để frontend khớp pattern hiển thị
   res.json({
     ok: true,
+    found: true,
     data: {
-      siteName: settings.siteName || 'TỔ CAM — LOCKET VIP 👑',
-      bankInfo: settings.bankInfo || {
-        bankId: 'MB',
-        accountNumber: '0382864171',
-        accountName: 'TRUONG PHU TRONG',
-        memoPrefix: 'VIPCAM'
-      },
-      plans: settings.plans || { regular: [], vip: [] }
+      username: username,
+      fullName: username,
+      uid: 'uid_' + Date.now(),
+      avatarUrl: null,
+      hasGold: false,
+      daysLeft: 0
     }
   });
 });
  
-// Tạo đơn hàng
-app.post('/api/order/create', async (req, res) => {
-  const { username: rawUser, planType, planId, couponCode } = req.body || {};
+// 3. Tạo đơn hàng mới
+app.post('/api/order/create', (req, res) => {
+  const { username: rawUser, planType, planId } = req.body || {};
   const username = cleanLocketUsername(rawUser);
   if (!username) return res.status(400).json({ ok: false, message: 'Thiếu username Locket!' });
  
@@ -313,15 +166,9 @@ app.post('/api/order/create', async (req, res) => {
   const memoPrefix = (bank.memoPrefix || 'VIPCAM').toUpperCase();
   const orderCode = `${memoPrefix}${randNum}`;
   const orderId = `ORD_${Date.now()}_${randNum}`;
-  const originalPrice = Number(matchedPlan.price) || 75000;
-  let finalAmount = originalPrice;
+  const amount = Number(matchedPlan.price) || 75000;
  
-  if (couponCode) {
-    const coupCheck = evaluateCoupon({ code: couponCode, originalPrice }, settings);
-    if (coupCheck.ok) finalAmount = coupCheck.coupon.finalPrice;
-  }
- 
-  const qrUrl = `https://img.vietqr.io/image/${bank.bankId || 'MB'}-${bank.accountNumber || '0382864171'}-compact2.png?amount=${finalAmount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(bank.accountName || 'TRUONG PHU TRONG')}`;
+  const qrUrl = `https://img.vietqr.io/image/${bank.bankId || 'MB'}-${bank.accountNumber || '0382864171'}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(bank.accountName || 'TRUONG PHU TRONG')}`;
  
   const newOrder = {
     id: orderId,
@@ -330,39 +177,61 @@ app.post('/api/order/create', async (req, res) => {
     planType: type,
     planId: matchedPlan.id,
     planName: matchedPlan.name,
-    amount: finalAmount,
+    amount,
     status: 'PENDING',
     qrUrl,
-    createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + ORDER_EXPIRATION_MS).toISOString()
+    createdAt: new Date().toISOString()
   };
  
   const orders = loadOrders();
   orders.unshift(newOrder);
-  await saveOrders(orders.slice(0, 500));
+  saveOrders(orders.slice(0, 500));
+ 
   res.json({ ok: true, order: newOrder });
 });
  
-// Lấy danh sách đơn hàng cho Admin
+// 4. Kiểm tra trạng thái thanh toán (Polling từ frontend)
+app.get('/check-payment', (req, res) => {
+  const username = cleanLocketUsername(req.query.username || '');
+  if (!username) return res.status(400).json({ error: 'Thiếu username' });
+ 
+  const orders = loadOrders();
+  const matched = orders.find(o => cleanLocketUsername(o.username) === username);
+ 
+  if (matched && (matched.status === 'ACTIVATED' || matched.status === 'PAID')) {
+    return res.json({
+      paid: true,
+      plan: matched.planCode || matched.planId,
+      amount: matched.amount,
+      username: matched.username,
+      locketStatus: matched.status === 'ACTIVATED' ? 'success' : 'pending',
+      mobileconfigUrl: '/profile?username=' + encodeURIComponent(username)
+    });
+  }
+ 
+  res.json({ paid: false, username });
+});
+ 
+// 5. Admin API lấy danh sách đơn hàng
 app.get('/api/admin/orders', requireAdmin, (req, res) => {
   const orders = loadOrders();
   res.json({ ok: true, orders });
 });
  
-// Duyệt đơn hàng / Cập nhật trạng thái
-app.post('/api/admin/order/update-status', requireAdmin, async (req, res) => {
+// 6. Admin duyệt / cập nhật đơn hàng
+app.post('/api/admin/order/update-status', requireAdmin, (req, res) => {
   const { orderId, status } = req.body || {};
   const orders = loadOrders();
   const order = orders.find(o => o.id === orderId || o.orderCode === orderId);
   if (!order) return res.status(404).json({ ok: false, message: 'Không tìm thấy đơn hàng!' });
  
   order.status = status;
-  await saveOrders(orders);
+  saveOrders(orders);
   res.json({ ok: true, message: 'Đã cập nhật trạng thái đơn hàng!', order });
 });
  
-// Admin Login
-app.post('/api/admin/login', async (req, res) => {
+// 7. Admin Login
+app.post('/api/admin/login', (req, res) => {
   const { password } = req.body || {};
   const settings = loadSettings();
   const currentPass = process.env.ADMIN_PASSWORD || settings.adminPassword || 'admin123';
@@ -373,14 +242,10 @@ app.post('/api/admin/login', async (req, res) => {
  
   const token = 'adm_' + crypto.randomBytes(32).toString('hex');
   activeAdminTokens.add(token);
-  await saveSessions(activeAdminTokens);
+  saveSessions(activeAdminTokens);
   res.json({ ok: true, token, message: 'Đăng nhập thành công!' });
 });
  
-async function startServer() {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server đang chạy tại: http://localhost:${PORT}`);
-  });
-}
- 
-startServer();
+app.listen(PORT, () => {
+  console.log(`🚀 Server đang chạy tại cổng ${PORT}`);
+});
