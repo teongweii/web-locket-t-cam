@@ -66,13 +66,13 @@ function loadSettings() {
     },
     plans: {
       vip: [
-        { id: 'VIP_1Y', code: 'VIP_1Y', name: 'Locket VIP Pro 1 Năm', price: 75000 },
-        { id: 'VIP_2Y', code: 'VIP_2Y', name: 'Locket VIP Pro 2 Năm', price: 95000 },
-        { id: 'VIP_VV', code: 'VIP_LIFETIME', name: 'Locket VIP Vĩnh Viễn', price: 150000 }
+        { id: 'VIP_1Y', code: 'VIP_1Y', name: 'Locket VIP Pro 1 Năm', price: 75000, duration: '1 Năm', videoLength: '60 Giây Siêu Dài' },
+        { id: 'VIP_2Y', code: 'VIP_2Y', name: 'Locket VIP Pro 2 Năm', price: 95000, duration: '2 Năm', videoLength: '60 Giây Siêu Dài' },
+        { id: 'VIP_VV', code: 'VIP_LIFETIME', name: 'Locket VIP Vĩnh Viễn', price: 150000, duration: 'Vĩnh Viễn Trọn Đời', videoLength: '60 Giây Siêu Dài' }
       ],
       regular: [
-        { id: 'REG_TEST', code: 'TEST', name: 'Locket Gold Dùng Thử', price: 5000 },
-        { id: 'REG_1Y', code: 'YEARLY', name: 'Locket Gold 1 Năm', price: 49000 }
+        { id: 'REG_TEST', code: 'TEST', name: 'Locket Gold Dùng Thử', price: 5000, duration: '1 ngày', videoLength: '30 Giây' },
+        { id: 'REG_1Y', code: 'YEARLY', name: 'Locket Gold 1 Năm', price: 49000, duration: '1 Năm', videoLength: '30 Giây' }
       ]
     }
   };
@@ -173,14 +173,22 @@ app.post('/api/order/create', (req, res) => {
  
   const newOrder = {
     id: orderId,
-    orderCode,
-    username,
+    orderCode: orderCode,
+    code: orderCode,
+    username: username,
     planType: type,
     planId: matchedPlan.id,
+    planCode: matchedPlan.code || matchedPlan.id,
     planName: matchedPlan.name,
-    amount,
+    amount: amount,
     status: 'PENDING',
-    qrUrl,
+    qrUrl: qrUrl,
+    bankInfo: {
+      bankName: bank.bankName || 'MBBank',
+      accountNumber: bank.accountNumber || '0382864171',
+      accountName: bank.accountName || 'TRUONG PHU TRONG',
+      memo: orderCode
+    },
     createdAt: new Date().toISOString()
   };
  
@@ -188,7 +196,12 @@ app.post('/api/order/create', (req, res) => {
   orders.unshift(newOrder);
   saveOrders(orders.slice(0, 500));
  
-  res.json({ ok: true, order: newOrder });
+  res.json({
+    ok: true,
+    success: true,
+    order: newOrder,
+    data: newOrder
+  });
 });
  
 // 4. Kiểm tra trạng thái thanh toán
